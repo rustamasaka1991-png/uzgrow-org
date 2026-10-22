@@ -110,3 +110,21 @@ Xodimlarga login berilmaydi — ular faqat shaxsiy havola orqali kiradi va faqat
 7. Zaxira: ☰ Menyu → JSON eksport.
 
 **Yangi admin qo'shish**: Supabase → SQL Editor: `insert into adminlar(email, rol, nomi) values ('email', 'hr', 'Ism')` (rol: `hr` yoki `rahbar`), keyin o'sha odam `#/login` da ro'yxatdan o'tadi.
+
+## Ochiq ko'rish rejimi
+
+Saytni ochgan har kim (loginsiz) tuzilmani ko'radi: bo'limlar, ismlar, lavozimlar, rasmlar, kim kimga bo'ysunadi. Hech qanday tahrirlash tugmasi yo'q. Telefon, manzil, oila, baholash va boshqa anketa ma'lumotlari ko'rinmaydi — ular brauzerga umuman yuborilmaydi.
+
+Kirish sahifasiga havola yo'q: HR yoki rahbar manzil qatoriga `/#/login` qo'shib kiradi (masalan https://uzgrow-org.vercel.app/#/login). Kirgandan keyin to'liq rejim ochiladi, "Chiqish" bosilganda yana ochiq rejimga qaytadi va brauzerdagi ma'lumotlar tozalanadi.
+
+"Bevosita rahbari" ro'yxatida faqat rahbarlar chiqadi: CEO, bo'lim boshliqlari va qo'l ostida xodimi borlar.
+
+## Xavfsizlik
+
+- Jadvallarga (`bolimlar`, `xodimlar`, `havolalar`, `sozlamalar`, `adminlar`) faqat `adminlar` ro'yxatidagi kirgan foydalanuvchi kira oladi (RLS). Anonim kalit bilan jadvalni o'qib ham, yozib ham bo'lmaydi.
+- Ochiq rejim `tuzilma_ochiq()` funksiyasidan foydalanadi — u faqat id, bo'lim, rahbar, ism, lavozim, guruh va rasmni qaytaradi.
+- Xodim o'z anketasiga 128-bitli tasodifiy token bilan kiradi; taklif havolasi bir martalik; HR tokenni istalgan vaqt almashtira oladi.
+- Xodim yuborgan ma'lumotdan server faqat ruxsat etilgan maydonlarni oladi (`xodim_birlashtir`): bo'lim, rahbar, lavozim, baholash, rivojlanish rejasini o'zgartirib bo'lmaydi.
+- Supabase bilan ishlaganda brauzerda ma'lumot keshlanmaydi; chiqishda hamma narsa tozalanadi; realtime obunalar faqat admin sessiyasida.
+- Vercel'da HTTP sarlavhalari (`vercel.json`): Content-Security-Policy (faqat o'z kodi va Supabase), X-Frame-Options DENY, nosniff, HSTS, Referrer-Policy no-referrer.
+- Tavsiya: Supabase Dashboard → Authentication → "Disable new user signups" ni yoqing va Site URL ni https://uzgrow-org.vercel.app qiling.

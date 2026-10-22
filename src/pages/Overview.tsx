@@ -8,7 +8,7 @@ import { useOrg } from '../data/store'
 import { completeness } from '../lib/util'
 
 export function Overview() {
-  const { data, byId, headOf, ofDept } = useOrg()
+  const { data, byId, headOf, ofDept, canEdit } = useOrg()
   const nav = useNavigate()
   const [addDept, setAddDept] = useState(false)
   const [addEmp, setAddEmp] = useState(false)
@@ -24,15 +24,17 @@ export function Overview() {
           <h1>Tashkiliy tuzilma</h1>
           <p className="sub">Bo'limni bosing — ichiga kirasiz. Xodimni bosing — uning anketasi ochiladi.</p>
         </div>
-        <div className="title-actions">
-          <button type="button" className="btn" onClick={() => setAddDept(true)}>+ Bo'lim</button>
-          <button type="button" className="btn primary" onClick={() => setAddEmp(true)}>+ Xodim</button>
-        </div>
+        {canEdit && (
+          <div className="title-actions">
+            <button type="button" className="btn" onClick={() => setAddDept(true)}>+ Bo'lim</button>
+            <button type="button" className="btn primary" onClick={() => setAddEmp(true)}>+ Xodim</button>
+          </div>
+        )}
       </div>
       <div className="stats">
         <span className="chip"><b>{data.bolimlar.length}</b> bo'lim</span>
         <span className="chip"><b>{E.length}</b> xodim</span>
-        <span className="chip">Anketa to'ldirilgan: <b>{avg}%</b></span>
+        {canEdit && <span className="chip">Anketa to'ldirilgan: <b>{avg}%</b></span>}
       </div>
 
       {ceo ? (

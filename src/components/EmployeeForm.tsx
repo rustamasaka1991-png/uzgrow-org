@@ -9,7 +9,7 @@ import { Modal } from './Modal'
 type Props = { initial?: Employee; defaultDept?: string; onClose: () => void; onSaved?: (id: string) => void }
 
 export function EmployeeForm({ initial, defaultDept, onClose, onSaved }: Props) {
-  const { data, byId, addEmployee, updateEmployee } = useOrg()
+  const { data, byId, managers, addEmployee, updateEmployee } = useOrg()
   const editing = !!initial
   const [ism, setIsm] = useState(initial?.ism ?? '')
   const [lavozim, setLavozim] = useState(initial?.lavozim ?? '')
@@ -24,15 +24,19 @@ export function EmployeeForm({ initial, defaultDept, onClose, onSaved }: Props) 
   const [foto, setFoto] = useState(initial?.foto ?? '')
   const [err, setErr] = useState('')
 
-  // Rahbar sifatida: o'zi va o'z qo'l ostidagilardan tashqari hamma
+  // Rahbar sifatida faqat rahbarlar (CEO, bo'lim boshliqlari, qo'l ostida xodimi borlar);
+  // o'zi va o'z qo'l ostidagilar chiqmaydi. Hozirgi rahbari ro'yxatda bo'lmasa ham saqlanadi.
   const candidates = useMemo(() => {
     const under = new Set<string>()
     if (initial) {
       const walk = (id: string) => { for (const x of data.xodimlar) if (x.rahbar === id && !under.has(x.id)) { under.add(x.id); walk(x.id) } }
       walk(initial.id)
     }
-    return data.xodimlar.filter((x) => x.id !== initial?.id && !under.has(x.id))
-  }, [data.xodimlar, initial])
+    const list = managers.filter((x) => x.id !== initial?.id && !under.has(x.id))
+    const cur = initial && byId[initial.rahbar]
+    if (cur && !list.some((x) => x.id === cur.id)) list.push(cur)
+    return list
+  }, [data.xodimlar, managers, byId, initial])
 
   const groupsInDept = useMemo(() => Array.from(new Set(data.xodimlar.filter((x) => x.bolim === bolim && x.guruh).map((x) => x.guruh))), [data.xodimlar, bolim])
 

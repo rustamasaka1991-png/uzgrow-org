@@ -13,7 +13,7 @@ import { completeness } from '../lib/util'
 
 export function DeptView() {
   const { id = '' } = useParams()
-  const { data, deptOf, ofDept, headOf, byId, deleteDepartment } = useOrg()
+  const { data, deptOf, ofDept, headOf, byId, deleteDepartment, canEdit } = useOrg()
   const nav = useNavigate()
   const [edit, setEdit] = useState(false)
   const [addEmp, setAddEmp] = useState(false)
@@ -46,12 +46,14 @@ export function DeptView() {
           <h2>{d.nomi}</h2>
           <p>{ps.length} kishi{boss ? ` · ${boss.ism}ga bo'ysunadi` : ''}</p>
         </div>
-        <div className="title-actions">
-          <button type="button" className="btn" onClick={() => setEdit(true)}>Tahrirlash</button>
-          <button type="button" className="btn danger ghost" onClick={remove}>O'chirish</button>
-          {supabase && <button type="button" className="btn primary" onClick={() => setInvite(true)}>🔗 Taklif havolasi</button>}
-          <button type="button" className="btn" onClick={() => setAddEmp(true)}>+ Xodim (qo'lda)</button>
-        </div>
+        {canEdit && (
+          <div className="title-actions">
+            <button type="button" className="btn" onClick={() => setEdit(true)}>Tahrirlash</button>
+            <button type="button" className="btn danger ghost" onClick={remove}>O'chirish</button>
+            {supabase && <button type="button" className="btn primary" onClick={() => setInvite(true)}>🔗 Taklif havolasi</button>}
+            <button type="button" className="btn" onClick={() => setAddEmp(true)}>+ Xodim (qo'lda)</button>
+          </div>
+        )}
       </div>
       <div className="grid2">
         <section className="panel">
@@ -62,7 +64,7 @@ export function DeptView() {
         </section>
         <div className="col">
           <section className="panel">
-            <h3>Xodimlar va anketalar</h3>
+            <h3>{canEdit ? 'Xodimlar va anketalar' : 'Xodimlar'}</h3>
             <div className="list">
               {ps.map((e) => {
                 const p = completeness(e)
@@ -70,23 +72,23 @@ export function DeptView() {
                   <Link key={e.id} className="person" to={`/x/${e.id}`}>
                     <Avatar e={e} />
                     <div><div className="n">{e.ism}</div><div className="r">{e.lavozim}</div></div>
-                    <span className="fill" title="Anketa to'ldirilganligi"><i><b style={{ width: `${p}%` }} /></i>{p}%</span>
+                    {canEdit && <span className="fill" title="Anketa to'ldirilganligi"><i><b style={{ width: `${p}%` }} /></i>{p}%</span>}
                   </Link>
                 )
               })}
               {!ps.length && <div className="empty-box">Hali xodim qo'shilmagan</div>}
             </div>
           </section>
-          {supabase && <InvitesPanel bolim={id} />}
+          {canEdit && supabase && <InvitesPanel bolim={id} />}
           <section className="panel">
             <h3>Asosiy vazifalar</h3>
-            {d.vazifalar.length ? <ul className="duties">{d.vazifalar.map((x, i) => <li key={i}>{x}</li>)}</ul> : <div className="empty-box">Vazifalar kiritilmagan — "Tahrirlash" orqali qo'shing</div>}
+            {d.vazifalar.length ? <ul className="duties">{d.vazifalar.map((x, i) => <li key={i}>{x}</li>)}</ul> : <div className="empty-box">{canEdit ? 'Vazifalar kiritilmagan — "Tahrirlash" orqali qo’shing' : 'Vazifalar kiritilmagan'}</div>}
           </section>
         </div>
       </div>
-      {edit && <DeptForm initial={d} onClose={() => setEdit(false)} />}
-      {addEmp && <EmployeeForm defaultDept={id} onClose={() => setAddEmp(false)} onSaved={(xid) => nav(`/x/${xid}`)} />}
-      {invite && <InviteModal bolim={id} defaultBoss={h?.id ?? data.ceoId} onClose={() => setInvite(false)} />}
+      {canEdit && edit && <DeptForm initial={d} onClose={() => setEdit(false)} />}
+      {canEdit && addEmp && <EmployeeForm defaultDept={id} onClose={() => setAddEmp(false)} onSaved={(xid) => nav(`/x/${xid}`)} />}
+      {canEdit && invite && <InviteModal bolim={id} defaultBoss={h?.id ?? data.ceoId} onClose={() => setInvite(false)} />}
     </div>
   )
 }
@@ -133,7 +135,7 @@ function InvitesPanel({ bolim }: { bolim: string }) {
 
 /* ---------- Yangi taklif havolasi ---------- */
 function InviteModal({ bolim, defaultBoss, onClose }: { bolim: string; defaultBoss: string; onClose: () => void }) {
-  const { data, deptOf } = useOrg()
+  const { data, deptOf, managers } = useOrg()
   const { create } = useInvites(bolim)
   const [lavozim, setLavozim] = useState('')
   const [rahbar, setRahbar] = useState(defaultBoss)
@@ -167,7 +169,7 @@ function InviteModal({ bolim, defaultBoss, onClose }: { bolim: string; defaultBo
           <label className="field"><span>Bevosita rahbari</span>
             <select value={rahbar} onChange={(e) => setRahbar(e.target.value)}>
               <option value="">— Yo'q —</option>
-              {data.xodimlar.map((x) => <option key={x.id} value={x.id}>{x.ism} — {x.lavozim}</option>)}
+              {managers.map((x) => <option key={x.id} value={x.id}>{x.ism} — {x.lavozim}</option>)}
             </select>
           </label>
           <label className="field"><span>Guruh (ixtiyoriy)</span>

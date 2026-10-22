@@ -7,7 +7,7 @@ import type { Department, Employee, OrgData } from './types'
 const KEY = 'uzgrow-org:v1'
 const QKEY = 'uzgrow-org:queue'
 
-export type SyncStatus = 'local' | 'loading' | 'online' | 'saving' | 'offline' | 'error'
+export type SyncStatus = 'local' | 'loading' | 'online' | 'saving' | 'offline' | 'error' | 'public'
 
 /* ---------- normalizatsiya ---------- */
 function normDept(b: Partial<Department> & { id: string }): Department {
@@ -23,16 +23,25 @@ export function normalize(raw: unknown): OrgData {
   const ceoId = typeof r.ceoId === 'string' && ids.has(r.ceoId) ? r.ceoId : (xodimlar.find((x) => !x.rahbar)?.id ?? '')
   return { version: 1, bolimlar, xodimlar, ceoId, updatedAt: typeof r.updatedAt === 'string' ? r.updatedAt : new Date().toISOString() }
 }
+const EMPTY = (): OrgData => normalize({ bolimlar: [], xodimlar: [] })
+
+/** Supabase bo'lmaganda (lokal rejim) localStorage'dan o'qish. Supabase bilan brauzerda ma'lumot keshlanmaydi. */
 function loadLocal(): OrgData {
+  if (supabase) return EMPTY()
   try { const s = localStorage.getItem(KEY); if (s) return normalize(JSON.parse(s)) } catch (e) { console.warn('localStorage o’qilmadi', e) }
-  return supabase ? normalize({ bolimlar: [], xodimlar: [] }) : normalize(SEED)
+  return normalize(SEED)
 }
 function saveLocal(d: OrgData): string | null {
+  if (supabase) return null
   try { localStorage.setItem(KEY, JSON.stringify(d)); return null } catch (e) {
     return e instanceof Error && /quota/i.test(e.name + e.message)
       ? "Brauzer saqlash joyi to'ldi: rasmlar hajmi katta. Ba'zi rasmlarni olib tashlang."
       : 'Saqlashda xatolik: ' + String(e)
   }
+}
+/** Chiqishda brauzerdagi barcha ilova ma'lumotlarini tozalash. */
+export function clearLocalData() {
+  try { localStorage.removeItem(KEY); localStorage.removeItem(QKEY) } catch { /* ignore */ }
 }
 
 /* ---------- Supabase navbati (offline bo'lsa saqlanib turadi) ---------- */
@@ -53,7 +62,6 @@ function saveQueue(q: Map<string, Op>) {
   try { q.size ? localStorage.setItem(QKEY, JSON.stringify([...q.values()])) : localStorage.removeItem(QKEY) } catch { /* ignore */ }
 }
 
-/** Ikki holat orasidagi farqdan Supabase amallarini chiqaradi. */
 function diffOps(prev: OrgData, next: OrgData): Op[] {
   const ops: Op[] = []
   const pb = new Map(prev.bolimlar.map((b, i) => [b.id, { b, i }]))
@@ -86,13 +94,16 @@ const isNetErr = (msg: string) => /fetch|network|Failed|ECONN|timeout/i.test(msg
 type Ctx = {
   data: OrgData
   byId: Record<string, Employee>
-  /** xodim id → shaxsiy havola tokeni (faqat admin ko'radi) */
+  /** true — tahrirlash mumkin (admin yoki lokal rejim); false — ochiq ko'rish */
+  canEdit: boolean
   tokens: Record<string, string>
   deptOf: (id: string) => Department | undefined
   kids: (id: string) => Employee[]
   ofDept: (id: string) => Employee[]
   headOf: (id: string) => Employee | undefined
   colorOf: (deptId: string) => string
+  /** Rahbarlar: CEO, bo'lim boshliqlari va qo'l ostida xodimi borlar */
+  managers: Employee[]
   addEmployee: (e: Employee) => void
   updateEmployee: (id: string, fn: (e: Employee) => Employee) => void
   deleteEmployee: (id: string) => void
@@ -113,8 +124,9 @@ type Ctx = {
 const OrgContext = createContext<Ctx | null>(null)
 
 export function OrgProvider({ children }: { children: ReactNode }) {
-  const { isAdmin, session } = useAuth()
+  const { isAdmin, session, loading: authLoading } = useAuth()
   const active = !!supabase && isAdmin && !!session
+  const publicMode = !!supabase && !authLoading && !active
   const [data, setDataState] = useState<OrgData>(loadLocal)
   const dataRef = useRef(data)
   const [tokens, setTokens] = useState<Record<string, string>>({})
@@ -163,15 +175,37 @@ export function OrgProvider({ children }: { children: ReactNode }) {
   }, [flush])
 
   const commit = useCallback((fn: (d: OrgData) => OrgData) => {
+    if (supabase && !active) return // ochiq rejimda hech narsa o'zgartirilmaydi
     const prev = dataRef.current
     const next = { ...fn(prev), updatedAt: new Date().toISOString() }
     setData(next)
     enqueue(diffOps(prev, next))
-  }, [setData, enqueue])
+  }, [active, setData, enqueue])
 
-  /* ---- Supabase'dan yuklash + realtime (faqat admin sessiyasida) ---- */
+  /* ---- Ochiq rejim: faqat tuzilma (maxfiy maydonlarsiz) ---- */
   useEffect(() => {
-    if (!active) { if (supabase) { setSync('loading'); loaded.current = false } return }
+    if (!publicMode) return
+    const sb = supabase!
+    let alive = true
+    // Admin sessiyasidan qolgan to'liq ma'lumotlar xotiradan darhol tozalanadi
+    setTokens({})
+    setData(EMPTY())
+    setSync('loading')
+    const load = async () => {
+      const { data: d, error } = await sb.rpc('tuzilma_ochiq')
+      if (!alive) return
+      if (error) { setSync(isNetErr(error.message) ? 'offline' : 'error'); setSyncError(error.message); return }
+      setData(normalize(d))
+      setSync('public'); setSyncError(null)
+    }
+    void load()
+    const timer = window.setInterval(() => { void load() }, 60000)
+    return () => { alive = false; window.clearInterval(timer) }
+  }, [publicMode, setData])
+
+  /* ---- Admin: Supabase'dan to'liq yuklash + realtime ---- */
+  useEffect(() => {
+    if (!active) { if (supabase) { loaded.current = false } return }
     const sb = supabase!
     let alive = true
 
@@ -198,9 +232,9 @@ export function OrgProvider({ children }: { children: ReactNode }) {
         if (err) throw new Error(err.message)
         if (!alive) return
         if ((b.data?.length ?? 0) + (x.data?.length ?? 0) === 0) {
-          const cur = dataRef.current.xodimlar.length ? dataRef.current : normalize(SEED)
+          const cur = normalize(SEED)
           setData(cur)
-          enqueue(diffOps({ ...cur, bolimlar: [], xodimlar: [], ceoId: '' }, cur))
+          enqueue(diffOps(EMPTY(), cur))
         } else {
           applyRemote(b.data as Row[], x.data as Row[], s.data as SettingRow[])
         }
@@ -271,8 +305,12 @@ export function OrgProvider({ children }: { children: ReactNode }) {
     const ofDept = (id: string) => data.xodimlar.filter((e) => e.bolim === id)
     const headOf = (id: string) => ofDept(id).find((e) => !byId[e.rahbar] || byId[e.rahbar].bolim !== id)
     const colorOf = (deptId: string) => deptOf(deptId)?.rang ?? 'var(--brand)'
+    const hasKids = new Set(data.xodimlar.map((e) => e.rahbar).filter(Boolean))
+    const heads = new Set(data.bolimlar.map((b) => headOf(b.id)?.id).filter(Boolean))
+    const managers = data.xodimlar.filter((e) => e.id === data.ceoId || heads.has(e.id) || hasKids.has(e.id))
     return {
-      data, byId, tokens, deptOf, kids, ofDept, headOf, colorOf, saveError, sync, syncError, pending,
+      data, byId, tokens, deptOf, kids, ofDept, headOf, colorOf, managers, saveError, sync, syncError, pending,
+      canEdit: !supabase || active,
       lastSaved: data.updatedAt,
       retrySync: () => { void flush() },
       addEmployee: (e) => {
@@ -305,7 +343,7 @@ export function OrgProvider({ children }: { children: ReactNode }) {
       replaceAll: (raw) => commit(() => normalize(raw)),
       reset: () => commit(() => normalize(SEED)),
     }
-  }, [data, byId, tokens, commit, enqueue, flush, saveError, sync, syncError, pending])
+  }, [data, byId, tokens, active, commit, enqueue, flush, saveError, sync, syncError, pending])
 
   return <OrgContext.Provider value={api}>{children}</OrgContext.Provider>
 }

@@ -10,7 +10,7 @@ import { completeness, fileToDataUrl, filled } from '../lib/util'
 
 export function Profile() {
   const { id = '' } = useParams()
-  const { byId, tokens, deptOf, colorOf, updateEmployee, deleteEmployee, regenerateToken, kids } = useOrg()
+  const { byId, tokens, deptOf, colorOf, updateEmployee, deleteEmployee, regenerateToken, kids, canEdit } = useOrg()
   const nav = useNavigate()
   const [edit, setEdit] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -23,13 +23,18 @@ export function Profile() {
   const p = completeness(e)
   const sh = e.shaxsiy
   const C = 2 * Math.PI * 20
-  const facts: [string, string | undefined, string?][] = [
-    ['Lavozimi', sh.lavozim || e.lavozim], ["Tug'ilgan sana", sh.tugilgan], ['Telefon', sh.telefon], ['Manzil', sh.manzil],
-    ['Oilaviy holati', sh.oilaviy], ['Bevosita rahbari', boss?.ism, boss ? `/x/${boss.id}` : undefined],
-  ]
   const subs = kids(e.id)
   const token = tokens[e.id]
   const link = token ? linkTo(`/a/${token}`) : ''
+  const facts: [string, string | undefined, string?][] = canEdit
+    ? [
+        ['Lavozimi', sh.lavozim || e.lavozim], ["Tug'ilgan sana", sh.tugilgan], ['Telefon', sh.telefon], ['Manzil', sh.manzil],
+        ['Oilaviy holati', sh.oilaviy], ['Bevosita rahbari', boss?.ism, boss ? `/x/${boss.id}` : undefined],
+      ]
+    : [
+        ['Lavozimi', e.lavozim], ["Bo'limi", d?.nomi ?? (e.bolim === 'rahbariyat' ? 'Rahbariyat' : undefined), d ? `/d/${d.id}` : undefined],
+        ['Guruh', e.guruh], ['Bevosita rahbari', boss?.ism, boss ? `/x/${boss.id}` : undefined],
+      ]
 
   async function onPhoto(f: File | undefined) {
     if (!f) return
@@ -51,30 +56,40 @@ export function Profile() {
       <div className="crumbs no-print">
         <Link className="back" to="/">← Umumiy tuzilma</Link>
         {d && <Link className="back" to={`/d/${d.id}`}>{d.nomi}</Link>}
-        <span className="grow" />
-        <button type="button" className="btn" onClick={() => window.print()}>Chop etish</button>
-        <button type="button" className="btn" onClick={() => setEdit(true)}>Tahrirlash</button>
-        <button type="button" className="btn danger ghost" onClick={remove}>O'chirish</button>
+        {canEdit && (
+          <>
+            <span className="grow" />
+            <button type="button" className="btn" onClick={() => window.print()}>Chop etish</button>
+            <button type="button" className="btn" onClick={() => setEdit(true)}>Tahrirlash</button>
+            <button type="button" className="btn danger ghost" onClick={remove}>O'chirish</button>
+          </>
+        )}
       </div>
       <div className="hero">
         <div className="band" />
         <div className="in">
-          <button type="button" className="av-btn" onClick={() => fileRef.current?.click()} title="Rasm yuklash">
-            <Avatar e={e} size="lg" /><span className="av-hint">Rasm</span>
-          </button>
-          <input ref={fileRef} type="file" accept="image/*" hidden onChange={(ev) => { onPhoto(ev.target.files?.[0]); ev.target.value = '' }} />
+          {canEdit ? (
+            <>
+              <button type="button" className="av-btn" onClick={() => fileRef.current?.click()} title="Rasm yuklash">
+                <Avatar e={e} size="lg" /><span className="av-hint">Rasm</span>
+              </button>
+              <input ref={fileRef} type="file" accept="image/*" hidden onChange={(ev) => { onPhoto(ev.target.files?.[0]); ev.target.value = '' }} />
+            </>
+          ) : <Avatar e={e} size="lg" />}
           <div className="who">
-            <h2>{sh.fish || e.ism}</h2>
+            <h2>{(canEdit && sh.fish) || e.ism}</h2>
             <div className="pos">{e.lavozim}{d ? ' · ' + d.nomi : e.bolim === 'rahbariyat' ? ' · Rahbariyat' : ''}{e.guruh ? ` · ${e.guruh}` : ''}</div>
           </div>
-          <div className="ring">
-            <svg viewBox="0 0 48 48">
-              <circle cx="24" cy="24" r="20" fill="none" stroke="var(--line)" strokeWidth="5" />
-              <circle cx="24" cy="24" r="20" fill="none" stroke={c} strokeWidth="5" strokeLinecap="round" strokeDasharray={`${(C * p) / 100} ${C}`} transform="rotate(-90 24 24)" />
-              <text x="24" y="28" textAnchor="middle" fontSize="12" fontWeight="700" fill="var(--fg)">{p}%</text>
-            </svg>
-            Anketa<br />to'ldirilgan
-          </div>
+          {canEdit && (
+            <div className="ring">
+              <svg viewBox="0 0 48 48">
+                <circle cx="24" cy="24" r="20" fill="none" stroke="var(--line)" strokeWidth="5" />
+                <circle cx="24" cy="24" r="20" fill="none" stroke={c} strokeWidth="5" strokeLinecap="round" strokeDasharray={`${(C * p) / 100} ${C}`} transform="rotate(-90 24 24)" />
+                <text x="24" y="28" textAnchor="middle" fontSize="12" fontWeight="700" fill="var(--fg)">{p}%</text>
+              </svg>
+              Anketa<br />to'ldirilgan
+            </div>
+          )}
         </div>
         <div className="facts">
           {facts.map(([k, v, href]) => (
@@ -90,7 +105,7 @@ export function Profile() {
             {subs.map((s) => <Link key={s.id} to={`/x/${s.id}`} className="chip">{s.ism}</Link>)}
           </div>
         )}
-        {supabase && (
+        {canEdit && supabase && (
           <div className="subs no-print linkrow">
             <span className="k">Xodimning shaxsiy havolasi:</span>
             {token ? (
@@ -99,14 +114,18 @@ export function Profile() {
                 <button type="button" className="btn" onClick={copy}>{copied ? 'Nusxalandi ✓' : 'Nusxalash'}</button>
                 <button type="button" className="btn ghost" onClick={regen}>Yangi havola</button>
               </>
-            ) : <span className="note">Havola hali yaratilmagan — "Yangi havola" bosing. <button type="button" className="btn ghost" onClick={() => regenerateToken(e.id)}>Yangi havola</button></span>}
+            ) : <span className="note">Havola hali yaratilmagan. <button type="button" className="btn ghost" onClick={() => regenerateToken(e.id)}>Yangi havola</button></span>}
           </div>
         )}
       </div>
 
-      <Anketa e={e} mode="admin" save={(fn) => updateEmployee(e.id, fn)} />
+      {canEdit ? (
+        <Anketa e={e} mode="admin" save={(fn) => updateEmployee(e.id, fn)} />
+      ) : (
+        <div className="panel empty-box">Anketa ma'lumotlari faqat HR va rahbarga ko'rinadi.</div>
+      )}
 
-      {edit && <EmployeeForm initial={e} onClose={() => setEdit(false)} />}
+      {canEdit && edit && <EmployeeForm initial={e} onClose={() => setEdit(false)} />}
     </div>
   )
 }
