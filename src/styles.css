@@ -250,3 +250,13 @@ textarea{resize:vertical}
   .sec>summary .chev{display:none}
   main{padding:0}
 }
+
+/* sync holati */
+.sync{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:12.5px;color:var(--muted);cursor:default;max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sync i{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
+.sync.online i{background:var(--ok)}
+.sync.saving i,.sync.loading i{background:var(--warn);animation:pulse 1s infinite}
+.sync.offline i,.sync.error i{background:var(--bad)}
+.sync.offline,.sync.error{cursor:pointer;color:var(--bad);border-color:var(--bad)}
+@keyframes pulse{50%{opacity:.3}}
+@media (max-width:760px){.sync{order:3}}

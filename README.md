@@ -55,3 +55,17 @@ src/
   components/       formalar, modal, daraxt, anketa bo'limlari
   styles.css        dizayn (yorug'/qorong'i, mobil, print)
 ```
+
+## Supabase (bir nechta kompyuter uchun)
+
+`.env` da `VITE_SUPABASE_URL` va `VITE_SUPABASE_ANON_KEY` bo'lsa, ilova Supabase bilan sinxron ishlaydi:
+
+- har bir o'zgarish darhol `bolimlar`, `xodimlar`, `sozlamalar` jadvallariga yoziladi;
+- boshqa kompyuterdagi o'zgarishlar realtime orqali bir necha soniyada ko'rinadi;
+- internet bo'lmasa, o'zgarishlar brauzerda navbatda turadi va ulanish qaytganda yuboriladi (sarlavhadagi holat belgisi buni ko'rsatadi);
+- localStorage kesh sifatida qoladi — sahifa Supabase'siz ham ochiladi.
+
+Jadvallar birinchi marta `scratchpad/migrate` skripti bilan yaratilgan (SQL: `id text`, `data jsonb`, `tartib int`, RLS yoqilgan, `anon` roliga to'liq ruxsat, realtime publication).
+Diqqat: anon kalit brauzerga ketadi, shuning uchun kalitni bilgan har kim ma'lumotni o'qiy va o'zgartira oladi. Keyingi qadam — Supabase Auth bilan kirish qo'shish.
+
+`.env` ni olib tashlasangiz, ilova avvalgidek faqat localStorage bilan ishlaydi.

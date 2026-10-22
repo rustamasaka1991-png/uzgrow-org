@@ -27,7 +27,11 @@ function Header() {
   const [q, setQ] = useState('')
   const [menu, setMenu] = useState(false)
   const [theme, setTheme] = useTheme()
-  const { data, replaceAll, reset, saveError } = useOrg()
+  const { data, replaceAll, reset, saveError, sync, syncError, pending, retrySync } = useOrg()
+  const syncLabel: Record<typeof sync, string> = {
+    local: 'Faqat shu kompyuter', loading: 'Yuklanmoqda…', online: 'Supabase: ulangan', saving: 'Saqlanmoqda…',
+    offline: `Oflayn — ${pending} ta o'zgarish kutmoqda`, error: 'Sinxron xatosi',
+  }
   const fileRef = useRef<HTMLInputElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
   const prev = useRef('')
@@ -74,6 +78,9 @@ function Header() {
         <div className="search">
           <input type="search" value={q} placeholder="Xodimni qidirish…" aria-label="Xodimni qidirish" onChange={(e) => onSearch(e.target.value)} />
         </div>
+        <button type="button" className={`sync ${sync}`} title={syncError ?? syncLabel[sync]} onClick={() => (sync === 'offline' || sync === 'error') && retrySync()}>
+          <i /> {syncLabel[sync]}
+        </button>
         <div className="menu" ref={menuRef}>
           <button type="button" className="btn" onClick={() => setMenu((m) => !m)} aria-haspopup="menu" aria-expanded={menu}>☰ Ma'lumotlar</button>
           {menu && (
