@@ -56,16 +56,31 @@ src/
   styles.css        dizayn (yorug'/qorong'i, mobil, print)
 ```
 
-## Supabase (bir nechta kompyuter uchun)
+## Kirish va huquqlar
 
-`.env` da `VITE_SUPABASE_URL` va `VITE_SUPABASE_ANON_KEY` bo'lsa, ilova Supabase bilan sinxron ishlaydi:
+Ikki xil foydalanuvchi bor:
 
-- har bir o'zgarish darhol `bolimlar`, `xodimlar`, `sozlamalar` jadvallariga yoziladi;
-- boshqa kompyuterdagi o'zgarishlar realtime orqali bir necha soniyada ko'rinadi;
-- internet bo'lmasa, o'zgarishlar brauzerda navbatda turadi va ulanish qaytganda yuboriladi (sarlavhadagi holat belgisi buni ko'rsatadi);
-- localStorage kesh sifatida qoladi — sahifa Supabase'siz ham ochiladi.
+| Kim | Qanday kiradi | Nima qila oladi |
+|---|---|---|
+| **HR / rahbariyat (admin)** | `#/login` — email + parol. Faqat `adminlar` jadvalidagi emaillar admin bo'ladi | Hamma narsa: bo'limlar, xodimlar, baholash, rivojlanish rejasi, taklif havolalari, shaxsiy havolalar |
+| **Xodim** | Faqat o'ziga berilgan shaxsiy havola `#/a/<token>` | Faqat o'z anketasi: shaxsiy, ta'lim, mehnat, oila, shaxsiyat, hobbi, maqsad, takliflar, rasm. Baholash va rivojlanish rejasini faqat ko'radi |
 
-Jadvallar birinchi marta `scratchpad/migrate` skripti bilan yaratilgan (SQL: `id text`, `data jsonb`, `tartib int`, RLS yoqilgan, `anon` roliga to'liq ruxsat, realtime publication).
-Diqqat: anon kalit brauzerga ketadi, shuning uchun kalitni bilgan har kim ma'lumotni o'qiy va o'zgartira oladi. Keyingi qadam — Supabase Auth bilan kirish qo'shish.
+**Yangi xodim qanday qo'shiladi**
 
-`.env` ni olib tashlasangiz, ilova avvalgidek faqat localStorage bilan ishlaydi.
+1. HR bo'lim sahifasida **🔗 Taklif havolasi** → lavozim, rahbar, guruh → havola yaratiladi (`#/h/<token>`, bir marta ishlaydi).
+2. HR havolani xodimga yuboradi (Telegram/SMS). Xodim havolani ochib ismini kiritadi va anketasini to'ldiradi — u o'sha bo'limda paydo bo'ladi.
+3. Xodimga shaxsiy havola (`#/a/<token>`) ko'rsatiladi; HR ham uni xodim sahifasida ko'radi va kerak bo'lsa **Yangi havola** bilan almashtiradi (eski havola o'chadi).
+
+**Admin qo'shish**: Supabase SQL muharririda `insert into adminlar(email) values ('email@...')`, keyin o'sha odam `#/login` da ro'yxatdan o'tadi (emailga tasdiqlash xati keladi).
+
+## Supabase
+
+`.env` da `VITE_SUPABASE_URL` va `VITE_SUPABASE_ANON_KEY` bo'lsa ilova Supabase bilan ishlaydi:
+
+- jadvallar: `bolimlar`, `xodimlar` (`token` ustuni — shaxsiy havola), `sozlamalar`, `havolalar` (taklif havolalari), `adminlar`;
+- RLS: jadvallarga faqat `is_admin()` rost bo'lgan kirgan foydalanuvchi kira oladi; anonim kalit bilan jadvallarni o'qib bo'lmaydi;
+- xodimlar `security definer` RPC orqali ishlaydi: `havola_info`, `havola_toldirish`, `xodim_olish`, `xodim_saqlash` — token bo'yicha faqat o'z yozuvi, himoyalangan maydonlar (bo'lim, rahbar, lavozim, baholash, rivojlanish) server tomonida almashtirilmaydi;
+- admin tomonida har bir o'zgarish darhol yoziladi, boshqa kompyuterdagi o'zgarishlar realtime orqali ko'rinadi, oflaynda navbatga tushadi;
+- localStorage kesh sifatida qoladi. `.env` bo'lmasa ilova faqat lokal (havolalarsiz) rejimda ishlaydi.
+
+SQL migratsiyalar `scratchpad/migrate` skriptlari bilan pooler orqali qo'llangan (`aws-0-ap-northeast-2.pooler.supabase.com`).

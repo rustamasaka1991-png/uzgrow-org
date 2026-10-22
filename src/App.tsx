@@ -1,8 +1,12 @@
-import { useEffect, useRef, useState } from 'react'
-import { HashRouter, Link, Route, Routes, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { HashRouter, Link, Navigate, Route, Routes, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { AuthProvider, useAuth } from './data/auth'
 import { OrgProvider, useOrg } from './data/store'
 import { download } from './lib/util'
 import { DeptView } from './pages/DeptView'
+import { InviteFill } from './pages/InviteFill'
+import { Login } from './pages/Login'
+import { MyAnketa } from './pages/MyAnketa'
 import { Overview } from './pages/Overview'
 import { Profile } from './pages/Profile'
 import { SearchView } from './pages/SearchView'
@@ -20,6 +24,19 @@ function useTheme() {
   return [theme, setTheme] as const
 }
 
+/** Xodim sahifalari (havola orqali) — qidiruv va menyusiz sarlavha. */
+function MiniHeader() {
+  return (
+    <header className="no-print">
+      <div className="wrap">
+        <span className="logo">UZ-GROW<small>GREENHOUSE SOLUTIONS</small></span>
+        <span className="grow" />
+        <span className="note">Xodim anketasi</span>
+      </div>
+    </header>
+  )
+}
+
 function Header() {
   const nav = useNavigate()
   const loc = useLocation()
@@ -28,13 +45,14 @@ function Header() {
   const [menu, setMenu] = useState(false)
   const [theme, setTheme] = useTheme()
   const { data, replaceAll, reset, saveError, sync, syncError, pending, retrySync } = useOrg()
+  const { enabled, email, signOut } = useAuth()
+  const fileRef = useRef<HTMLInputElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
+  const prev = useRef('')
   const syncLabel: Record<typeof sync, string> = {
     local: 'Faqat shu kompyuter', loading: 'Yuklanmoqda…', online: 'Supabase: ulangan', saving: 'Saqlanmoqda…',
     offline: `Oflayn — ${pending} ta o'zgarish kutmoqda`, error: 'Sinxron xatosi',
   }
-  const fileRef = useRef<HTMLInputElement>(null)
-  const menuRef = useRef<HTMLDivElement>(null)
-  const prev = useRef('')
 
   useEffect(() => { if (!loc.pathname.startsWith('/search')) setQ(''); else setQ(sp.get('q') ?? '') }, [loc.pathname, sp])
   useEffect(() => {
@@ -82,9 +100,10 @@ function Header() {
           <i /> {syncLabel[sync]}
         </button>
         <div className="menu" ref={menuRef}>
-          <button type="button" className="btn" onClick={() => setMenu((m) => !m)} aria-haspopup="menu" aria-expanded={menu}>☰ Ma'lumotlar</button>
+          <button type="button" className="btn" onClick={() => setMenu((m) => !m)} aria-haspopup="menu" aria-expanded={menu}>☰ Menyu</button>
           {menu && (
             <div className="dropdown" role="menu">
+              {enabled && <div className="dd-note">HR: <b>{email}</b></div>}
               <div className="dd-note">{saveError ? <span className="err">{saveError}</span> : savedTxt}</div>
               <button type="button" role="menuitem" onClick={exportJson}>⬇ JSON eksport (zaxira)</button>
               <button type="button" role="menuitem" onClick={() => fileRef.current?.click()}>⬆ JSON import</button>
@@ -98,6 +117,7 @@ function Header() {
               </div>
               <div className="dd-sep" />
               <button type="button" role="menuitem" className="danger" onClick={doReset}>↺ Boshlang'ich holatga qaytarish</button>
+              {enabled && <button type="button" role="menuitem" onClick={() => { setMenu(false); void signOut() }}>⎋ Chiqish</button>}
             </div>
           )}
         </div>
@@ -107,28 +127,54 @@ function Header() {
   )
 }
 
+/** Admin (HR) sahifalari: Supabase bo'lsa faqat ruxsat ro'yxatidagi kirgan foydalanuvchi. */
+function AdminGate({ children }: { children: ReactNode }) {
+  const { enabled, loading, session, isAdmin } = useAuth()
+  if (!enabled) return <>{children}</>
+  if (loading) return <div className="center"><div className="spinner" /> Yuklanmoqda…</div>
+  if (!session || !isAdmin) return <Navigate to="/login" replace />
+  return <>{children}</>
+}
+
 function ScrollTop() {
   const loc = useLocation()
   useEffect(() => { window.scrollTo(0, 0) }, [loc.pathname])
   return null
 }
 
+function Shell() {
+  const loc = useLocation()
+  const { enabled, session, isAdmin } = useAuth()
+  const publicPage = loc.pathname.startsWith('/a/') || loc.pathname.startsWith('/h/') || loc.pathname === '/login'
+  const showAdminHeader = !publicPage && (!enabled || (session && isAdmin))
+  return (
+    <>
+      <ScrollTop />
+      {showAdminHeader ? <Header /> : <MiniHeader />}
+      <main className="wrap">
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/h/:token" element={<InviteFill />} />
+          <Route path="/a/:token" element={<MyAnketa />} />
+          <Route path="/" element={<AdminGate><Overview /></AdminGate>} />
+          <Route path="/d/:id" element={<AdminGate><DeptView /></AdminGate>} />
+          <Route path="/x/:id" element={<AdminGate><Profile /></AdminGate>} />
+          <Route path="/search" element={<AdminGate><SearchView /></AdminGate>} />
+          <Route path="*" element={<AdminGate><Overview /></AdminGate>} />
+        </Routes>
+      </main>
+    </>
+  )
+}
+
 export default function App() {
   return (
-    <OrgProvider>
-      <HashRouter>
-        <ScrollTop />
-        <Header />
-        <main className="wrap">
-          <Routes>
-            <Route path="/" element={<Overview />} />
-            <Route path="/d/:id" element={<DeptView />} />
-            <Route path="/x/:id" element={<Profile />} />
-            <Route path="/search" element={<SearchView />} />
-            <Route path="*" element={<Overview />} />
-          </Routes>
-        </main>
-      </HashRouter>
-    </OrgProvider>
+    <AuthProvider>
+      <OrgProvider>
+        <HashRouter>
+          <Shell />
+        </HashRouter>
+      </OrgProvider>
+    </AuthProvider>
   )
 }

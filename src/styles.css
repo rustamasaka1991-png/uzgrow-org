@@ -260,3 +260,23 @@ textarea{resize:vertical}
 .sync.offline,.sync.error{cursor:pointer;color:var(--bad);border-color:var(--bad)}
 @keyframes pulse{50%{opacity:.3}}
 @media (max-width:760px){.sync{order:3}}
+
+/* kirish / xodim sahifalari */
+.login{max-width:520px;margin:24px auto;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:24px}
+.login h1{margin-bottom:6px}
+.login .btn{display:inline-flex}
+.center{display:flex;align-items:center;gap:10px;justify-content:center;padding:60px 0;color:var(--muted)}
+.spinner{width:18px;height:18px;border:3px solid var(--line);border-top-color:var(--brand);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.invite-head .pill{display:inline-block;color:#fff;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border-radius:999px;margin-bottom:8px}
+.banner{background:color-mix(in srgb,var(--c) 10%,var(--surface));border:1px solid color-mix(in srgb,var(--c) 40%,var(--line));border-radius:12px;padding:14px 16px;margin-bottom:16px;font-size:14px}
+.banner.strong{border-width:2px}
+.link-box{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}
+.link-box code,.link-code{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:12.5px;overflow-wrap:anywhere;flex:1 1 240px}
+.linkrow{align-items:center}
+.lock{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:1px 8px;margin-left:4px;white-space:nowrap}
+.invite{display:flex;gap:10px;align-items:center;padding:8px;border-radius:8px;border:1px dashed var(--line)}
+.invite.used{border-style:solid;opacity:.85}
+.invite .n{font-weight:600;font-size:14px}
+.invite .r{font-size:12.5px;color:var(--muted)}
+.steps button:disabled{cursor:default}

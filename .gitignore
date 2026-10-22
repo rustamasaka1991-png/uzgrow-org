@@ -2,3 +2,4 @@ node_modules
 dist
 github-push.ps1
 *.tsbuildinfo
+ADMIN-KIRISH.txt
