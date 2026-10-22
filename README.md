@@ -84,3 +84,27 @@ Ikki xil foydalanuvchi bor:
 - localStorage kesh sifatida qoladi. `.env` bo'lmasa ilova faqat lokal (havolalarsiz) rejimda ishlaydi.
 
 SQL migratsiyalar `scratchpad/migrate` skriptlari bilan pooler orqali qo'llangan (`aws-0-ap-northeast-2.pooler.supabase.com`).
+
+## Foydalanish yo'riqnomasi (HR va rahbar uchun)
+
+**Hisoblar** (parollar `ADMIN-KIRISH.txt` faylida, git'ga tushmaydi):
+
+| Rol | Email | Huquqlar |
+|---|---|---|
+| Rahbar (bosh direktor) | `rahbar@uzgrow.uz` | Hamma narsa + xodimlarni baholash |
+| HR | `hr@uzgrow.uz` | Hamma narsa + xodimlarni baholash |
+| Ta'sischi | `rustamasaka1991@gmail.com` | Hamma narsa |
+
+Xodimlarga login berilmaydi — ular faqat shaxsiy havola orqali kiradi va faqat o'z anketasini ko'radi.
+
+**Kundalik ish tartibi**
+
+1. `#/login` ga kiring (HR yoki rahbar).
+2. Yangi xodim kelsa: bo'lim sahifasi → **🔗 Taklif havolasi** → lavozim, rahbar → **Havola yaratish** → **Nusxalash** → xodimga Telegram/SMS orqali yuboring.
+3. Xodim havolani ochadi, ism va rasmini kiritadi, anketasini to'ldiradi. Shu zahoti bo'limda paydo bo'ladi; HR sahifada "Taklif havolalari" bo'limida "To'ldirildi" deb ko'rinadi.
+4. Xodim anketasini keyin ham o'zgartirishi uchun unga ko'rsatilgan shaxsiy havolani saqlab qo'yishi kerak. Yo'qotsa — HR xodim sahifasida **Nusxalash** yoki **Yangi havola** qiladi.
+5. Baholash: xodim sahifasi → 08 "Xodimni baholash" → **Tahrirlash** → ballar, davr, izoh → **Saqlash**. Xodim buni faqat ko'radi.
+6. Rivojlanish rejasi (09) ham faqat HR/rahbar tomonidan to'ldiriladi. Takliflar (10) ni xodim yozadi, holatini ("Ko'rib chiqilmoqda", "Tasdiqlandi"...) faqat HR/rahbar o'zgartiradi.
+7. Zaxira: ☰ Menyu → JSON eksport.
+
+**Yangi admin qo'shish**: Supabase → SQL Editor: `insert into adminlar(email, rol, nomi) values ('email', 'hr', 'Ism')` (rol: `hr` yoki `rahbar`), keyin o'sha odam `#/login` da ro'yxatdan o'tadi.

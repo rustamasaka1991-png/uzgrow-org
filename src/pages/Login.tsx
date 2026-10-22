@@ -34,7 +34,7 @@ export function Login() {
   return (
     <div className="login">
       <h1>HR kirishi</h1>
-      <p className="sub">Bu sahifa faqat HR / rahbariyat uchun. Xodimlar o'zlariga berilgan shaxsiy havola orqali kiradi.</p>
+      <p className="sub">Bu sahifa faqat HR va rahbar (bosh direktor) uchun. Xodimlar o'zlariga berilgan shaxsiy havola orqali kiradi — ularga login kerak emas.</p>
       <form className="form" onSubmit={submit}>
         <label className="field"><span>Email</span><input type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} /></label>
         <label className="field"><span>Parol</span><input type="password" autoComplete={mode === 'in' ? 'current-password' : 'new-password'} required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} /></label>

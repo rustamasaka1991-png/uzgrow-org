@@ -45,7 +45,7 @@ function Header() {
   const [menu, setMenu] = useState(false)
   const [theme, setTheme] = useTheme()
   const { data, replaceAll, reset, saveError, sync, syncError, pending, retrySync } = useOrg()
-  const { enabled, email, signOut } = useAuth()
+  const { enabled, email, rolNomi, signOut } = useAuth()
   const fileRef = useRef<HTMLInputElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
   const prev = useRef('')
@@ -103,7 +103,7 @@ function Header() {
           <button type="button" className="btn" onClick={() => setMenu((m) => !m)} aria-haspopup="menu" aria-expanded={menu}>☰ Menyu</button>
           {menu && (
             <div className="dropdown" role="menu">
-              {enabled && <div className="dd-note">HR: <b>{email}</b></div>}
+              {enabled && <div className="dd-note">{rolNomi}: <b>{email}</b></div>}
               <div className="dd-note">{saveError ? <span className="err">{saveError}</span> : savedTxt}</div>
               <button type="button" role="menuitem" onClick={exportJson}>⬇ JSON eksport (zaxira)</button>
               <button type="button" role="menuitem" onClick={() => fileRef.current?.click()}>⬆ JSON import</button>

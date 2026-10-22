@@ -8,6 +8,9 @@ type AuthCtx = {
   loading: boolean
   session: Session | null
   isAdmin: boolean
+  /** 'hr' | 'rahbar' — adminlar jadvalidagi rol */
+  rol: string | null
+  rolNomi: string
   email: string | null
   signIn: (email: string, password: string) => Promise<string | null>
   signUp: (email: string, password: string) => Promise<string | null>
@@ -19,6 +22,7 @@ const Ctx = createContext<AuthCtx | null>(null)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [rol, setRol] = useState<{ rol: string | null; nomi: string }>({ rol: null, nomi: '' })
   const [loading, setLoading] = useState(!!supabase)
 
   useEffect(() => {
@@ -27,10 +31,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let alive = true
     const check = async (s: Session | null) => {
       setSession(s)
-      if (!s) { setIsAdmin(false); setLoading(false); return }
-      const { data, error } = await sb.rpc('is_admin')
+      if (!s) { setIsAdmin(false); setRol({ rol: null, nomi: '' }); setLoading(false); return }
+      const { data, error } = await sb.rpc('mening_rolim')
       if (!alive) return
-      setIsAdmin(!error && data === true)
+      const r = (!error && data && typeof data === 'object' ? data : { rol: null }) as { rol: string | null; nomi?: string }
+      setIsAdmin(!!r.rol)
+      setRol({ rol: r.rol, nomi: r.nomi ?? '' })
       setLoading(false)
     }
     sb.auth.getSession().then(({ data }) => { void check(data.session) })
@@ -53,8 +59,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = useCallback(async () => { await supabase?.auth.signOut() }, [])
 
   const value = useMemo<AuthCtx>(() => ({
-    enabled: !!supabase, loading, session, isAdmin: supabase ? isAdmin : true, email: session?.user.email ?? null, signIn, signUp, signOut,
-  }), [loading, session, isAdmin, signIn, signUp, signOut])
+    enabled: !!supabase, loading, session, isAdmin: supabase ? isAdmin : true,
+    rol: supabase ? rol.rol : 'hr', rolNomi: supabase ? (rol.nomi || (rol.rol === 'rahbar' ? 'Rahbar' : rol.rol === 'hr' ? 'HR' : '')) : 'Lokal',
+    email: session?.user.email ?? null, signIn, signUp, signOut,
+  }), [loading, session, isAdmin, rol, signIn, signUp, signOut])
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }
 
