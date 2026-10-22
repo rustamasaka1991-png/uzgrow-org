@@ -1,5 +1,7 @@
 # UZ-GROW Tashkiliy Tuzilma
 
+**Jonli sayt:** https://uzgrow-org.vercel.app (Vercel, GitHub `main` ga har push avtomatik chiqadi)
+
 Kompaniya bo'limlari, xodimlar va ularning anketalarini yuritish uchun React ilova.
 Ma'lumotlar brauzerda (localStorage) saqlanadi — server kerak emas.
 
@@ -99,7 +101,7 @@ Xodimlarga login berilmaydi — ular faqat shaxsiy havola orqali kiradi va faqat
 
 **Kundalik ish tartibi**
 
-1. `#/login` ga kiring (HR yoki rahbar).
+1. https://uzgrow-org.vercel.app/#/login ga kiring (HR yoki rahbar).
 2. Yangi xodim kelsa: bo'lim sahifasi → **🔗 Taklif havolasi** → lavozim, rahbar → **Havola yaratish** → **Nusxalash** → xodimga Telegram/SMS orqali yuboring.
 3. Xodim havolani ochadi, ism va rasmini kiritadi, anketasini to'ldiradi. Shu zahoti bo'limda paydo bo'ladi; HR sahifada "Taklif havolalari" bo'limida "To'ldirildi" deb ko'rinadi.
 4. Xodim anketasini keyin ham o'zgartirishi uchun unga ko'rsatilgan shaxsiy havolani saqlab qo'yishi kerak. Yo'qotsa — HR xodim sahifasida **Nusxalash** yoki **Yangi havola** qiladi.
