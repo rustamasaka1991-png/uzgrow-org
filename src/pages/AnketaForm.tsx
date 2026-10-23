@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Avatar } from '../components/Avatar'
 import { ANKETA, emptyEmployee } from '../data/seed'
 import { api } from '../data/supabase'
@@ -11,8 +11,21 @@ const TIME_KEYS: TimeKey[] = ['talim', 'mehnat']
 const ORDER: (QAKey | TimeKey)[] = ['shaxsiy', 'talim', 'mehnat', 'oila', 'shaxsiyat', 'hobbi', 'maqsad']
 const ONE_LINE = new Set(['fish', 'tugilgan', 'telefon', 'millat', 'lavozim'])
 
+const DRAFT_KEY = 'uzgrow-org:anketa-qoralama'
+function loadDraft(): Employee | null {
+  try { const s = localStorage.getItem(DRAFT_KEY); if (s) return emptyEmployee(JSON.parse(s)) } catch { /* ignore */ }
+  return null
+}
+
 export function AnketaForm() {
-  const [e, setE] = useState<Employee>(() => emptyEmployee({ talim: [{ yil: '', joy: '' }], mehnat: [{ yil: '', joy: '' }] }))
+  const [e, setE] = useState<Employee>(() => loadDraft() ?? emptyEmployee({ talim: [{ yil: '', joy: '' }], mehnat: [{ yil: '', joy: '' }] }))
+  const [restored] = useState(() => !!loadDraft())
+  // Qoralama: har o'zgarishda brauzerda saqlanadi — sahifa yopilsa ham yo'qolmaydi
+  useEffect(() => {
+    const t = window.setTimeout(() => { try { localStorage.setItem(DRAFT_KEY, JSON.stringify(e)) } catch { /* ignore */ } }, 400)
+    return () => window.clearTimeout(t)
+  }, [e])
+  const clearDraft = () => { try { localStorage.removeItem(DRAFT_KEY) } catch { /* ignore */ } }
   const [hp, setHp] = useState('')
   const [err, setErr] = useState('')
   const [busy, setBusy] = useState(false)
@@ -44,6 +57,7 @@ export function AnketaForm() {
         oila: e.oila, shaxsiyat: e.shaxsiyat, hobbi: e.hobbi, maqsad: e.maqsad, website: hp,
       })
       if (!r.ok) { setErr(r.xato); return }
+      clearDraft()
       setDone(true)
       window.scrollTo(0, 0)
     } catch (ex) { setErr(String((ex as Error).message ?? ex)) } finally { setBusy(false) }
@@ -63,7 +77,13 @@ export function AnketaForm() {
     <form className="aform" onSubmit={submit}>
       <div className="intro">
         <h1>UZ-GROW xodim anketasi</h1>
-        <p className="sub">Barcha savollarga iloji boricha to'liq javob bering. Yulduzcha (*) bilan belgilanganlar majburiy. Oxirida "Yuborish" tugmasini bosing — anketa HR bo'limiga tushadi.</p>
+        <p className="sub">Barcha savollarga iloji boricha to'liq javob bering. Yulduzcha (*) bilan belgilanganlar majburiy. Oxirida "Yuborish" tugmasini bosing — anketa HR bo'limiga tushadi. Javoblaringiz shu brauzerda avtomatik saqlanib boradi — keyin davom ettirsangiz bo'ladi.</p>
+        {restored && (
+          <div className="note" style={{ marginBottom: 10 }}>
+            ↩ Avval boshlagan anketangiz tiklandi.{' '}
+            <button type="button" className="btn ghost" onClick={() => { if (confirm("Hamma javoblar o'chirilib, bo'sh anketa ochilsinmi?")) { clearDraft(); location.reload() } }}>Boshidan boshlash</button>
+          </div>
+        )}
         <div className="photo-row">
           <Avatar e={{ ism: e.shaxsiy.fish || '?', foto: e.foto }} size="lg" />
           <div className="photo-actions">

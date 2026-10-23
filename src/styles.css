@@ -306,3 +306,20 @@ textarea{resize:vertical}
 .badge-n{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--bad);color:#fff;font-size:11px;font-weight:700;margin-left:6px}
 .accept{background:var(--surface);border:2px solid var(--brand);border-radius:12px;padding:16px;margin-bottom:16px}
 .accept h3{margin:0 0 10px;font-size:14px}
+
+/* tarix / hisobot jadvallari */
+.hist{margin-top:4px}
+.hist-t{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+.hist-t th,.hist-t td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+.hist-t th{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.hist-t.full{font-size:12.5px}
+.nowrap{white-space:nowrap}
+.check{display:flex;gap:8px;align-items:center;font-size:13.5px}
+.check input{width:auto}
+.fill.err{color:var(--bad)}
+.dup{font-size:11px;font-weight:700;color:var(--warn);border:1px solid var(--warn);border-radius:999px;padding:1px 8px;margin-left:6px}
+.kun{font-size:11.5px;color:var(--muted);white-space:nowrap}
+.kun.err{color:var(--bad);font-weight:700}
+@media (max-width:760px){.hist-t.full th:nth-child(5),.hist-t.full td:nth-child(5){display:none}}
+.dropdown>.dd-link{display:block;text-align:left;padding:9px 12px;border-radius:8px;font-weight:500;text-decoration:none}
+.dropdown>.dd-link:hover{background:var(--bg)}

@@ -88,20 +88,37 @@ export function TimelineBlock({ e, k, save }: { e: Employee; k: TimeKey; save?: 
 }
 
 /* ---------- Baholash ---------- */
-export function ScoreBlock({ e, s, save }: { e: Employee; s: ScoreSection; save?: Save }) {
+export function ScoreBlock({ e, s, save, baholovchi }: { e: Employee; s: ScoreSection; save?: Save; baholovchi?: string }) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState<Baholash>(e.baholash)
+  const [showHist, setShowHist] = useState(false)
   const b = editing ? draft : e.baholash
   const any = s.mezonlar.some(([q]) => filled(b[q]))
-  const sc = s.mezonlar.reduce((a, [q]) => a + (Number(b[q]) || 0), 0)
+  const total = (x: Baholash) => s.mezonlar.reduce((a, [q]) => a + (Number(x[q]) || 0), 0)
+  const sc = total(b)
   const [lv, c] = DARAJA(sc)
+  const hist = e.baholash_tarixi ?? []
   const start = () => { setDraft({ ...e.baholash }); setEditing(true) }
-  const doSave = () => { save?.((x) => ({ ...x, baholash: { ...draft } })); setEditing(false) }
+  const doSave = () => {
+    save?.((x) => {
+      const old = x.baholash
+      const oldAny = s.mezonlar.some(([q]) => filled(old[q]))
+      // Davr o'zgargan bo'lsa — eski baholash tarixga ko'chadi
+      const tarix = oldAny && old.davr && old.davr !== draft.davr ? [...(x.baholash_tarixi ?? []), old] : (x.baholash_tarixi ?? [])
+      return { ...x, baholash: { ...draft, baholovchi: baholovchi || draft.baholovchi, sana: today() }, baholash_tarixi: tarix }
+    })
+    setEditing(false)
+  }
+  const startNew = () => {
+    const d = new Date(); const q = Math.floor(d.getMonth() / 3) + 1
+    setDraft({ davr: `${d.getFullYear()} Q${q}`, izoh: '', vaqt: null, tartib: null, vazifa: null, rivojlanish: null, takomil: null, shogird: null })
+    setEditing(true)
+  }
   return (
     <div className="score">
       {editing ? (
         <label className="field"><span>Baholash davri</span><input value={draft.davr} onChange={(ev) => setDraft({ ...draft, davr: ev.target.value })} placeholder="Masalan: 2026 Q3" /></label>
-      ) : b.davr ? <div className="note">Baholash davri: <b>{b.davr}</b></div> : null}
+      ) : b.davr ? <div className="note">Baholash davri: <b>{b.davr}</b>{b.baholovchi ? ` · baholovchi: ${b.baholovchi}` : ''}{b.sana ? ` · ${b.sana}` : ''}</div> : null}
       {s.mezonlar.map(([q, t, max]) => (
         <div className="crit" key={q}>
           <span className="lb">{t}</span>
@@ -122,7 +139,30 @@ export function ScoreBlock({ e, s, save }: { e: Employee; s: ScoreSection; save?
         <label className="field"><span>Izoh</span><textarea rows={2} value={draft.izoh} onChange={(ev) => setDraft({ ...draft, izoh: ev.target.value })} /></label>
       ) : b.izoh ? <div className="note">{b.izoh}</div> : null}
       <div className="note">Darajalar: 90–100 a'lo · 75–89 yaxshi · 60–74 yaxshilash kerak · 0–59 rivojlanish rejasi zarur. Baholovchi — bevosita rahbar; tasdiqlovchi — bo'lim rahbari; HR dalillarni tekshiradi.</div>
-      {save && <EditBar editing={editing} onEdit={start} onSave={doSave} onCancel={() => setEditing(false)} />}
+      {hist.length > 0 && (
+        <div className="hist">
+          <button type="button" className="btn ghost" onClick={() => setShowHist((v) => !v)}>{showHist ? '▾' : '▸'} Oldingi baholashlar ({hist.length})</button>
+          {showHist && (
+            <table className="hist-t">
+              <thead><tr><th>Davr</th><th>Ball</th><th>Daraja</th><th>Baholovchi</th><th>Sana</th><th>Izoh</th></tr></thead>
+              <tbody>
+                {[...hist].reverse().map((h, i) => { const t = total(h); const [l] = DARAJA(t); return <tr key={i}><td>{h.davr}</td><td><b>{t}</b></td><td>{l}</td><td>{h.baholovchi || '—'}</td><td>{h.sana || '—'}</td><td>{h.izoh}</td></tr> })}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
+      {save && (
+        <div className="editbar">
+          {!editing && any && <button type="button" className="btn ghost" onClick={startNew} title="Hozirgi baholash tarixga ko'chadi, yangi davr ochiladi">+ Yangi davr</button>}
+          {editing ? (
+            <>
+              <button type="button" className="btn ghost" onClick={() => setEditing(false)}>Bekor</button>
+              <button type="button" className="btn primary" onClick={doSave}>Saqlash</button>
+            </>
+          ) : <button type="button" className="btn" onClick={start}>✎ Tahrirlash</button>}
+        </div>
+      )}
     </div>
   )
 }

@@ -8,7 +8,7 @@ import { copyText } from '../data/invites'
 import { SINOV_BOLIM, emptyEmployee } from '../data/seed'
 import { useOrg } from '../data/store'
 import { linkTo, supabase, type Ariza } from '../data/supabase'
-import { slug, uniqueId } from '../lib/util'
+import { norm, slug, uniqueId } from '../lib/util'
 
 const HOLAT: Record<Ariza['holat'], string> = { yangi: 'Yangi', qabul: 'Qabul qilindi', rad: 'Rad etildi' }
 const fmt = (s: string) => new Date(s).toLocaleString('uz', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
@@ -17,11 +17,20 @@ const fmt = (s: string) => new Date(s).toLocaleString('uz', { day: '2-digit', mo
 export function Arizalar() {
   const { enabled, session, isAdmin } = useAuth()
   const { list, error, loading } = useArizalar()
+  const { data } = useOrg()
   const [filter, setFilter] = useState<'yangi' | 'hammasi'>('yangi')
   const [copied, setCopied] = useState(false)
   if (enabled && (!session || !isAdmin)) return <Navigate to="/" replace />
   const link = linkTo('/anketa')
   const shown = filter === 'yangi' ? list.filter((a) => a.holat === 'yangi') : list
+  // Takror: bir xil telefon yoki ism bilan boshqa anketa / mavjud xodim
+  const tel = (s?: string) => (s ?? '').replace(/\D/g, '')
+  const isDup = (a: Ariza) => {
+    const t = tel(a.data.shaxsiy?.telefon), n = norm(a.data.ism ?? '')
+    const other = list.some((b) => b.id !== a.id && ((t && tel(b.data.shaxsiy?.telefon) === t) || (n && norm(b.data.ism ?? '') === n)))
+    const emp = data.xodimlar.some((e) => (t && tel(e.shaxsiy.telefon) === t) || (n && norm(e.ism) === n))
+    return other || (emp && a.holat !== 'qabul')
+  }
   async function copy() { setCopied(await copyText(link)); setTimeout(() => setCopied(false), 2000) }
   return (
     <>
@@ -46,7 +55,7 @@ export function Arizalar() {
           <Link key={a.id} className="ariza" to={`/arizalar/${a.id}`}>
             <Avatar e={{ ism: a.data.ism ?? '?', foto: a.data.foto ?? '' }} />
             <div>
-              <div className="n">{a.data.ism}</div>
+              <div className="n">{a.data.ism}{isDup(a) && <span className="dup" title="Bir xil telefon yoki ism bilan boshqa anketa yoki xodim bor">takror?</span>}</div>
               <div className="r">{fmt(a.created_at)}{a.data.shaxsiy?.telefon ? ` · ${a.data.shaxsiy.telefon}` : ''}{a.data.shaxsiy?.lavozim ? ` · ${a.data.shaxsiy.lavozim}` : ''}</div>
             </div>
             <span className={`st ${a.holat}`}>{HOLAT[a.holat]}</span>
@@ -63,7 +72,7 @@ export function ArizaView() {
   const nav = useNavigate()
   const { enabled, session, isAdmin } = useAuth()
   const { list, loading, setHolat, remove } = useArizalar()
-  const { data, managers, byId, addEmployee, deptOf } = useOrg()
+  const { data, managers, byId, allIds, addEmployee, deptOf } = useOrg()
   const [bolim, setBolim] = useState(data.bolimlar.some((b) => b.id === SINOV_BOLIM) ? SINOV_BOLIM : (data.bolimlar[0]?.id ?? ''))
   const [lavozim, setLavozim] = useState('')
   const [rahbar, setRahbar] = useState(() => byId[data.ceoId] ? data.ceoId : '')
@@ -83,8 +92,9 @@ export function ArizaView() {
     if (!lavozim.trim()) { setErr('Lavozimni kiriting'); return }
     setBusy(true); setErr('')
     try {
-      const xid = uniqueId(slug(a.data.ism ?? 'xodim'), new Set(data.xodimlar.map((x) => x.id)))
-      const emp = emptyEmployee({ ...a.data, id: xid, bolim, rahbar, lavozim: lavozim.trim(), guruh: guruh.trim() })
+      const xid = uniqueId(slug(a.data.ism ?? 'xodim'), new Set(allIds))
+      const emp = emptyEmployee({ ...a.data, id: xid, bolim, rahbar, lavozim: lavozim.trim(), guruh: guruh.trim(),
+        sinov_boshlandi: bolim === SINOV_BOLIM ? new Date().toISOString().slice(0, 10) : undefined })
       emp.shaxsiy.lavozim = lavozim.trim()
       addEmployee(emp)
       await setHolat(a.id, 'qabul', { xodim_id: xid })

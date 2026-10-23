@@ -6,15 +6,16 @@ import { EmployeeForm } from '../components/EmployeeForm'
 import { DeptIcon } from '../components/Icons'
 import { TreeNode } from '../components/Tree'
 import { useOrg } from '../data/store'
-import { completeness } from '../lib/util'
+import { completeness, daysSince } from '../lib/util'
 
 export function DeptView() {
   const { id = '' } = useParams()
-  const { data, deptOf, ofDept, headOf, byId, deleteDepartment, canEdit } = useOrg()
+  const { data, deptOf, ofDept, headOf, byId, deleteDepartment, canEdit, sync } = useOrg()
   const nav = useNavigate()
   const [edit, setEdit] = useState(false)
   const [addEmp, setAddEmp] = useState(false)
   const d = deptOf(id)
+  if (!d && (sync === 'loading' || sync === 'saving')) return <div className="center"><div className="spinner" /> Yuklanmoqda…</div>
   if (!d) return <Navigate to="/" replace />
   const ps = ofDept(id)
   const h = headOf(id)
@@ -67,7 +68,7 @@ export function DeptView() {
                 return (
                   <Link key={e.id} className="person" to={`/x/${e.id}`}>
                     <Avatar e={e} />
-                    <div><div className="n">{e.ism}</div><div className="r">{e.lavozim}</div></div>
+                    <div><div className="n">{e.ism}</div><div className="r">{e.lavozim}{id === 'sinov' && canEdit && (() => { const k = daysSince(e.sinov_boshlandi); return k === null ? null : <span className={`kun${k > 90 ? ' err' : ''}`}> · sinov: {k} kun{k > 90 ? ' (muddat o’tdi)' : ''}</span> })()}</div></div>
                     {canEdit && <span className="fill" title="Anketa to'ldirilganligi"><i><b style={{ width: `${p}%` }} /></i>{p}%</span>}
                   </Link>
                 )

@@ -38,6 +38,21 @@ export function slug(s: string) {
   return s.toLowerCase().split('').map((c) => map[c] ?? c).join('').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'x'
 }
 
+/** Qidiruv uchun: kirill → lotin, kichik harf, apostrof va bo'shliqlar olib tashlanadi ("Шодиев" == "shodiev"). */
+export function norm(s: string) {
+  return slug(String(s ?? '')).replace(/-/g, '')
+}
+
+/** Sanadan beri necha kun o'tdi (ISO yoki kun.oy.yil). */
+export function daysSince(iso: string | undefined) {
+  if (!iso) return null
+  let d = new Date(iso)
+  const m = /^(\d{2})\.(\d{2})\.(\d{4})$/.exec(iso)
+  if (m) d = new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]))
+  if (Number.isNaN(d.getTime())) return null
+  return Math.floor((Date.now() - d.getTime()) / 86400000)
+}
+
 export function uniqueId(base: string, taken: Set<string>) {
   let id = base, n = 2
   while (taken.has(id)) id = `${base}-${n++}`

@@ -10,12 +10,13 @@ import { completeness, fileToDataUrl, filled } from '../lib/util'
 
 export function Profile() {
   const { id = '' } = useParams()
-  const { byId, tokens, deptOf, colorOf, updateEmployee, deleteEmployee, regenerateToken, kids, canEdit } = useOrg()
+  const { byId, tokens, deptOf, colorOf, updateEmployee, archiveEmployee, restoreEmployee, regenerateToken, kids, canEdit, sync } = useOrg()
   const nav = useNavigate()
   const [edit, setEdit] = useState(false)
   const [copied, setCopied] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
   const e = byId[id]
+  if (!e && (sync === 'loading' || sync === 'saving')) return <div className="center"><div className="spinner" /> Yuklanmoqda…</div>
   if (!e) return <Navigate to="/" replace />
   const d = deptOf(e.bolim)
   const c = e.bolim === 'rahbariyat' ? 'var(--ceo)' : colorOf(e.bolim)
@@ -42,9 +43,12 @@ export function Profile() {
   }
   function remove() {
     const msg = subs.length
-      ? `${e!.ism} o'chirilsinmi? Uning ${subs.length} ta xodimi ${boss ? boss.ism + 'ga' : 'yuqori darajaga'} o'tkaziladi.`
-      : `${e!.ism} o'chirilsinmi?`
-    if (confirm(msg)) { deleteEmployee(e!.id); nav(d ? `/d/${d.id}` : '/') }
+      ? `${e!.ism} arxivga (ishdan ketganlar) o'tkazilsinmi? Uning ${subs.length} ta xodimi ${boss ? boss.ism + 'ga' : 'yuqori darajaga'} o'tkaziladi. Anketa saqlanadi, keyin qaytarish mumkin.`
+      : `${e!.ism} arxivga (ishdan ketganlar) o'tkazilsinmi? Anketa saqlanadi, keyin qaytarish mumkin.`
+    if (!confirm(msg)) return
+    const sabab = prompt('Sabab (ixtiyoriy): masalan "o’z xohishi bilan", "sinovdan o’tmadi"', '') ?? ''
+    archiveEmployee(e!.id, sabab.trim())
+    nav(d ? `/d/${d.id}` : '/')
   }
   async function copy() { setCopied(await copyText(link)); setTimeout(() => setCopied(false), 2000) }
   function regen() {
@@ -61,10 +65,13 @@ export function Profile() {
             <span className="grow" />
             <button type="button" className="btn" onClick={() => window.print()}>Chop etish</button>
             <button type="button" className="btn" onClick={() => setEdit(true)}>Tahrirlash</button>
-            <button type="button" className="btn danger ghost" onClick={remove}>O'chirish</button>
+            {e.arxiv
+              ? <button type="button" className="btn" onClick={() => { if (confirm(`${e.ism} tuzilmaga qaytarilsinmi?`)) restoreEmployee(e.id) }}>↩ Arxivdan qaytarish</button>
+              : <button type="button" className="btn danger ghost" onClick={remove}>Ishdan ketdi (arxiv)</button>}
           </>
         )}
       </div>
+      {e.arxiv && <div className="banner"><b>Arxivda (ishdan ketgan):</b> {e.arxiv.sana}{e.arxiv.sabab ? ` · ${e.arxiv.sabab}` : ''}. Tuzilmada ko'rinmaydi. <Link to="/boshqaruv/arxiv">Arxiv ro'yxati →</Link></div>}
       <div className="hero">
         <div className="band" />
         <div className="in">

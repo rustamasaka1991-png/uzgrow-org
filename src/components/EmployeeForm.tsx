@@ -9,7 +9,7 @@ import { Modal } from './Modal'
 type Props = { initial?: Employee; defaultDept?: string; onClose: () => void; onSaved?: (id: string) => void }
 
 export function EmployeeForm({ initial, defaultDept, onClose, onSaved }: Props) {
-  const { data, byId, managers, addEmployee, updateEmployee } = useOrg()
+  const { data, byId, managers, allIds, addEmployee, updateEmployee } = useOrg()
   const editing = !!initial
   const [ism, setIsm] = useState(initial?.ism ?? '')
   const [lavozim, setLavozim] = useState(initial?.lavozim ?? '')
@@ -22,6 +22,7 @@ export function EmployeeForm({ initial, defaultDept, onClose, onSaved }: Props) 
   })
   const [guruh, setGuruh] = useState(initial?.guruh ?? '')
   const [foto, setFoto] = useState(initial?.foto ?? '')
+  const [rahbarBelgisi, setRahbarBelgisi] = useState(!!initial?.rahbar_belgisi)
   const [err, setErr] = useState('')
 
   // Rahbar sifatida faqat rahbarlar (CEO, bo'lim boshliqlari, qo'l ostida xodimi borlar);
@@ -57,13 +58,15 @@ export function EmployeeForm({ initial, defaultDept, onClose, onSaved }: Props) 
     if (!ism.trim()) { setErr('Ism-sharif kiritilmagan'); return }
     if (!lavozim.trim()) { setErr('Lavozim kiritilmagan'); return }
     if (!bolim) { setErr("Bo'lim tanlanmagan"); return }
+    const sinovSana = (old?: string) => (bolim === 'sinov' ? (old || new Date().toISOString().slice(0, 10)) : old)
     if (editing && initial) {
       updateEmployee(initial.id, (e) => ({ ...e, ism: ism.trim(), lavozim: lavozim.trim(), bolim, rahbar, guruh: guruh.trim(), foto,
+        rahbar_belgisi: rahbarBelgisi || undefined, sinov_boshlandi: sinovSana(e.bolim === 'sinov' ? e.sinov_boshlandi : undefined),
         shaxsiy: { ...e.shaxsiy, lavozim: e.shaxsiy.lavozim === e.lavozim || !e.shaxsiy.lavozim ? lavozim.trim() : e.shaxsiy.lavozim } }))
       onSaved?.(initial.id)
     } else {
-      const id = uniqueId(slug(ism), new Set(data.xodimlar.map((x) => x.id)))
-      const e = emptyEmployee({ id, ism: ism.trim(), lavozim: lavozim.trim(), bolim, rahbar, guruh: guruh.trim(), foto })
+      const id = uniqueId(slug(ism), new Set(allIds))
+      const e = emptyEmployee({ id, ism: ism.trim(), lavozim: lavozim.trim(), bolim, rahbar, guruh: guruh.trim(), foto, rahbar_belgisi: rahbarBelgisi || undefined, sinov_boshlandi: sinovSana() })
       e.shaxsiy.lavozim = lavozim.trim()
       addEmployee(e)
       onSaved?.(id)
@@ -104,6 +107,7 @@ export function EmployeeForm({ initial, defaultDept, onClose, onSaved }: Props) 
           <input value={guruh} onChange={(e) => setGuruh(e.target.value)} list="groups" placeholder="Masalan: Call operatorlar" />
           <datalist id="groups">{groupsInDept.map((g) => <option key={g} value={g} />)}</datalist>
         </label>
+        <label className="check"><input type="checkbox" checked={rahbarBelgisi} onChange={(e) => setRahbarBelgisi(e.target.checked)} /> Rahbar (boshqalarga "bevosita rahbar" sifatida tanlanadi)</label>
         {err && <div className="err">{err}</div>}
         <div className="actions">
           <button type="button" className="btn ghost" onClick={onClose}>Bekor qilish</button>

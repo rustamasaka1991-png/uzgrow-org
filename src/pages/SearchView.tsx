@@ -1,7 +1,7 @@
 import { Link, useSearchParams } from 'react-router-dom'
 import { Avatar } from '../components/Avatar'
 import { useOrg } from '../data/store'
-import { escapeRe } from '../lib/util'
+import { escapeRe, norm } from '../lib/util'
 
 function Mark({ text, re }: { text: string; re: RegExp }) {
   const parts = text.split(re)
@@ -13,7 +13,9 @@ export function SearchView() {
   const q = (sp.get('q') ?? '').trim()
   const { data, deptOf, colorOf } = useOrg()
   const re = new RegExp('(' + escapeRe(q) + ')', 'gi')
-  const hits = q ? data.xodimlar.filter((e) => re.test([e.ism, e.lavozim, e.shaxsiy.fish, e.shaxsiy.telefon, e.guruh, deptOf(e.bolim)?.nomi ?? ''].join(' '))) : []
+  // Kirill/lotin va apostrof farqisiz: "shodiev" ham "Шодиев"ni topadi
+  const nq = norm(q)
+  const hits = q ? data.xodimlar.filter((e) => norm([e.ism, e.lavozim, e.shaxsiy.fish, e.shaxsiy.telefon, e.guruh, deptOf(e.bolim)?.nomi ?? ''].join(' ')).includes(nq)) : []
   return (
     <>
       <div className="crumbs"><Link className="back" to="/">← Umumiy tuzilma</Link></div>

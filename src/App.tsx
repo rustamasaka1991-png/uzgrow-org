@@ -6,7 +6,9 @@ import { OrgProvider, clearLocalData, useOrg } from './data/store'
 import { download } from './lib/util'
 import { AnketaForm } from './pages/AnketaForm'
 import { ArizaView, Arizalar } from './pages/Arizalar'
+import { Boshqaruv } from './pages/Boshqaruv'
 import { DeptView } from './pages/DeptView'
+import { Hisobot } from './pages/Hisobot'
 import { Login } from './pages/Login'
 import { MyAnketa } from './pages/MyAnketa'
 import { Overview } from './pages/Overview'
@@ -148,6 +150,11 @@ function AdminHeader() {
             <div className="dropdown" role="menu">
               {enabled && <div className="dd-note">{rolNomi}: <b>{email}</b></div>}
               <div className="dd-note">{saveError ? <span className="err">{saveError}</span> : savedTxt}</div>
+              <Link role="menuitem" className="dd-link" to="/hisobot" onClick={() => setMenu(false)}>📊 Hisobot</Link>
+              <Link role="menuitem" className="dd-link" to="/boshqaruv/tarix" onClick={() => setMenu(false)}>🕘 O'zgarishlar tarixi</Link>
+              <Link role="menuitem" className="dd-link" to="/boshqaruv/zaxira" onClick={() => setMenu(false)}>💾 Zaxiralar</Link>
+              <Link role="menuitem" className="dd-link" to="/boshqaruv/arxiv" onClick={() => setMenu(false)}>🗄 Arxiv (ishdan ketganlar)</Link>
+              <div className="dd-sep" />
               <button type="button" role="menuitem" onClick={exportJson}>⬇ JSON eksport (zaxira)</button>
               <button type="button" role="menuitem" onClick={() => fileRef.current?.click()}>⬆ JSON import</button>
               <input ref={fileRef} type="file" accept="application/json,.json" hidden onChange={(e) => { importJson(e.target.files?.[0]); e.target.value = '' }} />
@@ -194,6 +201,9 @@ function Shell() {
           <Route path="/a/:token" element={<MyAnketa />} />
           <Route path="/arizalar" element={<Arizalar />} />
           <Route path="/arizalar/:id" element={<ArizaView />} />
+          <Route path="/boshqaruv" element={<Boshqaruv />} />
+          <Route path="/boshqaruv/:tab" element={<Boshqaruv />} />
+          <Route path="/hisobot" element={<Hisobot />} />
           <Route path="/" element={<Overview />} />
           <Route path="/d/:id" element={<DeptView />} />
           <Route path="/x/:id" element={<Profile />} />

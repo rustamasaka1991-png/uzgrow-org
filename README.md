@@ -97,3 +97,14 @@ Jadvallar: `bolimlar`, `xodimlar` (`token` — shaxsiy havola), `sozlamalar`, `a
 - Supabase bilan ishlaganda brauzerda ma'lumot keshlanmaydi; chiqishda tozalanadi; realtime faqat admin sessiyasida.
 - Vercel HTTP sarlavhalari (`vercel.json`): Content-Security-Policy, X-Frame-Options DENY, nosniff, HSTS, Referrer-Policy no-referrer.
 - Tavsiya: Supabase Dashboard → Authentication → "Disable new user signups" ni yoqing va Site URL ni https://uzgrow-org.vercel.app qiling.
+
+## Boshqaruv imkoniyatlari (☰ Menyu)
+
+- **Hisobot** — bo'limlar kesimida xodim soni, anketa to'ldirilganlik, o'rtacha ball, 60 dan past ballilar; sinov muddatidagilar (90 kundan oshsa qizil); baholanmaganlar; anketalar statistikasi.
+- **O'zgarishlar tarixi** — kim, qachon, qaysi xodim/bo'lim/anketada nimani o'zgartirdi (bazadagi trigger yozadi, 180 kun saqlanadi).
+- **Zaxiralar** — har kuni avtomatik (pg_cron, 30 kun), "Hozir zaxira olish", JSON yuklab olish, tiklash.
+- **Arxiv** — "Ishdan ketdi (arxiv)" bosilgan xodimlar: anketasi saqlanadi, tuzilmada ko'rinmaydi, qaytarish yoki butunlay o'chirish mumkin.
+- **Baholash tarixi** — "+ Yangi davr" bosilganda eski baholash tarixga ko'chadi; baholovchi va sana yoziladi.
+- **Parolni o'zgartirish**, 4 soat harakatsizlikdan keyin avtomatik chiqish.
+- Anketa formasi javoblarni brauzerda avtomatik saqlaydi (qoralama).
+- `api/ping.js` + `vercel.json` cron: har kuni Supabase'ga so'rov — bepul loyiha uxlab qolmaydi.

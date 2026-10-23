@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useAuth } from '../data/auth'
 import { ANKETA, SECTION_ORDER } from '../data/seed'
 import type { Employee, QAKey, SectionKey, TimeKey } from '../data/types'
 import { filled, score } from '../lib/util'
@@ -12,6 +13,8 @@ import { QABlock, ScoreBlock, SuggBlock, TimelineBlock, type Save } from './Sect
  */
 export function Anketa({ e, mode, save }: { e: Employee; mode: 'admin' | 'self' | 'view'; save?: Save }) {
   const [open, setOpen] = useState<Record<string, boolean>>({ shaxsiy: true, talim: true, mehnat: true, baholash: true })
+  const { email, rolNomi } = useAuth()
+  const baholovchi = email ? `${rolNomi || 'Admin'} (${email})` : undefined
   const sc = score(e)
   const canEdit = (k: SectionKey) => mode === 'admin' || (mode === 'self' && k !== 'baholash' && k !== 'rivojlanish')
   const secCount = (k: SectionKey) => {
@@ -46,7 +49,7 @@ export function Anketa({ e, mode, save }: { e: Employee; mode: 'admin' | 'self' 
             </summary>
             {s.turi === 'qa' && <QABlock e={e} k={k as QAKey} s={s} save={sv} />}
             {s.turi === 'vaqt' && <TimelineBlock e={e} k={k as TimeKey} save={sv} />}
-            {s.turi === 'ball' && <ScoreBlock e={e} s={s} save={sv} />}
+            {s.turi === 'ball' && <ScoreBlock e={e} s={s} save={sv} baholovchi={baholovchi} />}
             {s.turi === 'taklif' && <SuggBlock e={e} save={sv} canStatus={mode === 'admin'} />}
           </details>
         )

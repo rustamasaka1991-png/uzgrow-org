@@ -45,6 +45,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => { alive = false; sub.subscription.unsubscribe() }
   }, [])
 
+  // 4 soat harakatsizlikdan keyin avtomatik chiqish (umumiy kompyuterlar uchun)
+  useEffect(() => {
+    if (!supabase || !session) return
+    const sb = supabase
+    const IDLE = 4 * 60 * 60 * 1000
+    let last = Date.now()
+    const touch = () => { last = Date.now() }
+    const evs: (keyof WindowEventMap)[] = ['mousemove', 'keydown', 'click', 'touchstart', 'scroll']
+    evs.forEach((ev) => window.addEventListener(ev, touch, { passive: true }))
+    const timer = window.setInterval(() => { if (Date.now() - last > IDLE) { void sb.auth.signOut(); try { localStorage.removeItem('uzgrow-org:v1'); localStorage.removeItem('uzgrow-org:queue') } catch { /* ignore */ } } }, 60000)
+    return () => { evs.forEach((ev) => window.removeEventListener(ev, touch)); window.clearInterval(timer) }
+  }, [session])
+
   const signIn = useCallback(async (email: string, password: string) => {
     if (!supabase) return 'Supabase sozlanmagan'
     const { error } = await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password })

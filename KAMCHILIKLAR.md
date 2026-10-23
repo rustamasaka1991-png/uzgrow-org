@@ -2,7 +2,30 @@
 
 Sana: 2026-10-23. Bu hujjat tizimning hozirgi holatini halol tasvirlaydi: nima ishlaydi, nima ishlamaydi, qayerda xavf bor, nimani qachon tuzatish kerak.
 
-Belgilar: 🔴 — muhim, tezroq hal qilish kerak · 🟡 — o'rtacha, rejalashtiring · 🟢 — kichik, qulaylik.
+Belgilar: 🔴 — muhim, tezroq hal qilish kerak · 🟡 — o'rtacha, rejalashtiring · 🟢 — kichik, qulaylik · ✅ — tuzatildi.
+
+## 0. 2026-10-23 da tuzatilganlar (hammasi tekshirilgan)
+
+| | Edi | Endi |
+|---|---|---|
+| ✅ | Ro'yxatdan o'tish ochiq edi | Bazada trigger: faqat `adminlar` ro'yxatidagi email ro'yxatdan o'ta oladi |
+| ✅ | Parolni o'zgartirib bo'lmas edi | ☰ Menyu → "Parolni o'zgartirish" |
+| ✅ | Sessiya cheksiz edi | 4 soat harakatsizlikdan keyin avtomatik chiqadi, brauyzer tozalanadi |
+| ✅ | Anketa formasida qoralama yo'q edi | Har javob brauzerda saqlanadi; sahifa yopilsa ham tiklanadi ("Boshidan boshlash" tugmasi bor) |
+| ✅ | Audit log yo'q edi | `tarix` jadvali: kim, qachon, nimani o'zgartirdi (180 kun). ☰ Menyu → "O'zgarishlar tarixi" |
+| ✅ | Zaxira yo'q edi | Har kuni 06:00 (Toshkent) avtomatik zaxira (30 kun saqlanadi) + "Hozir zaxira olish", yuklab olish va tiklash. ☰ Menyu → "Zaxiralar" |
+| ✅ | Baholash tarixi yo'q edi | "+ Yangi davr" — eski baholash tarixga ko'chadi; baholovchi va sana yoziladi; jadval ko'rinishida |
+| ✅ | O'chirish qaytarilmas edi | "Ishdan ketdi (arxiv)" — xodim arxivga tushadi (sana, sabab), tuzilmada ko'rinmaydi, "Qaytarish" mumkin. ☰ Menyu → "Arxiv" |
+| ✅ | Sinov muddati sanasi yo'q edi | Sinov bo'limiga tushganda sana yoziladi; bo'lim ro'yxatida "N kun", 90 kundan oshsa qizil; Hisobotda alohida ro'yxat |
+| ✅ | "Rahbar" faqat avtomatik aniqlanar edi | Xodim formasida "Rahbar" belgisi — qo'lda qo'yiladi |
+| ✅ | Qidiruv kirill/lotinni ajratar edi | "shodiev" ham "Шодиев"ni topadi, apostrof farqi yo'q |
+| ✅ | Takror anketalar sezilmas edi | Bir xil telefon/ism bo'lsa ro'yxatda "takror?" belgisi |
+| ✅ | IP manzillar saqlanib qolar edi | 30 kundan keyin avtomatik o'chadi |
+| ✅ | Supabase 7 kun ishlatilmasa uxlar edi | Vercel cron har kuni 08:00 (Toshkent) Supabase'ga so'rov yuboradi — loyiha faol qoladi |
+| ✅ | Hisobot yo'q edi | ☰ Menyu → "Hisobot": bo'limlar kesimida xodim soni, anketa %, o'rtacha ball, past ball; sinovdagilar; baholanmaganlar; anketalar statistikasi |
+| ✅ | Qidiruv tizimlari indekslashi mumkin edi | `noindex, nofollow` |
+
+Qolgan bandlar (men qila olmaydiganlar yoki alohida qaror talab qiladiganlar) pastda.
 
 ---
 
@@ -12,7 +35,7 @@ Belgilar: 🔴 — muhim, tezroq hal qilish kerak · 🟡 — o'rtacha, rejalash
 |---|---|---|---|
 | 🔴 1 | **Baza parolini almashtiring** | Siz `postgresql://postgres:...` parolini chatga yozdingiz. Ilova bu parolni ishlatmaydi, lekin u endi "ochiq" deb hisoblanadi | Supabase Dashboard → Project Settings → Database → Reset database password |
 | 🔴 2 | **`ADMIN-KIRISH.txt` faylini xavfsiz joyga ko'chiring** | Parollar ish stolida ochiq matnda turibdi | Parol menejeriga (Bitwarden, 1Password, Google Password Manager) ko'chirib, faylni o'chiring |
-| 🔴 3 | **Supabase loyihasi "uxlab" qolmasin** | Bepul tarifda loyiha 7 kun ishlatilmasa to'xtatiladi — sayt "Ulanish yo'q" deb qoladi, anketalar kelmaydi | Haftada bir marta Dashboard'ga kiring, yoki Pro tarifga o'ting (25$/oy), yoki menga ayting — har kuni avtomatik so'rov yuboradigan sozlama qilaman |
+| ✅ 3 | **Supabase loyihasi "uxlab" qolmasin** | Bepul tarifda loyiha 7 kun ishlatilmasa to'xtatiladi | Hal qilindi: Vercel cron har kuni Supabase'ga so'rov yuboradi. Qo'shimcha kafolat — oyda bir Dashboard'ga kiring |
 | 🟡 4 | **Supabase → Authentication → URL Configuration → Site URL** ni `https://uzgrow-org.vercel.app` qiling | Email orqali tasdiqlash va parol tiklash havolalari hozir `localhost:3000` ga yo'naltiradi | Dashboard'da bir marta |
 | 🟡 5 | **Supabase → Authentication → "Disable new user signups"** ni yoqing | Men buni bazadagi trigger bilan qildim (ro'yxatda bo'lmagan email umuman ro'yxatdan o'ta olmaydi — tekshirildi). Dashboard tugmasi qo'shimcha qatlam | Dashboard'da bir marta |
 | 🟡 6 | **Vercel tarifi** | Hozir Hobby (bepul) tarif. Vercel qoidalariga ko'ra Hobby faqat shaxsiy/notijorat loyihalar uchun. Kompaniya ichki vositasi uchun Pro (20$/oy) talab qilinishi mumkin | Vercel → Settings → Billing |
