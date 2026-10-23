@@ -18,7 +18,12 @@ export const BOLIMLAR: Department[] = [
     vazifalar: ['Materiallar qabuli, saqlash va hisobi', "Ta'minot: profil, plyonka, furnitura xaridi", "Obyektlarga materiallarni jo'natish", 'Qoldiqlarni inventarizatsiya qilish'] },
   { id: 'ishlab', nomi: "Ishlab chiqarish bo'limi", rang: DEFAULT_COLORS.ishlab,
     vazifalar: ['Koreys tipidagi issiqxonalar loyihasi va chizmalari', 'Obyektlarda montaj va qurilish', 'Brigadalar ishini taqsimlash va sifat nazorati', 'Muddatlarga rioya va topshirish dalolatnomasi'] },
+  { id: 'sinov', nomi: 'Sinov muddatidagilar', rang: '#b8860b',
+    vazifalar: ['Yangi xodimlarning sinov muddati (odatda 1-3 oy)', 'Rahbar va HR kuzatuvi, oraliq baholash', "Sinov yakunida doimiy bo'limga o'tkazish yoki xayrlashish"] },
 ]
+
+/** Anketa qabul qilinganda taklif qilinadigan bo'lim */
+export const SINOV_BOLIM = 'sinov'
 
 export function emptyEmployee(partial: Partial<Employee> = {}): Employee {
   const base: Employee = {

@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { HashRouter, Link, Route, Routes, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { useYangiArizalar } from './data/arizalar'
 import { AuthProvider, useAuth } from './data/auth'
 import { OrgProvider, clearLocalData, useOrg } from './data/store'
 import { download } from './lib/util'
+import { AnketaForm } from './pages/AnketaForm'
+import { ArizaView, Arizalar } from './pages/Arizalar'
 import { DeptView } from './pages/DeptView'
-import { InviteFill } from './pages/InviteFill'
 import { Login } from './pages/Login'
 import { MyAnketa } from './pages/MyAnketa'
 import { Overview } from './pages/Overview'
@@ -24,14 +26,14 @@ function useTheme() {
   return [theme, setTheme] as const
 }
 
-/** Xodim sahifalari (havola orqali) — qidiruv va menyusiz sarlavha. */
-function MiniHeader() {
+/** Xodim sahifalari (anketa formasi, shaxsiy havola, kirish) — qidiruv va menyusiz sarlavha. */
+function MiniHeader({ label }: { label: string }) {
   return (
     <header className="no-print">
       <div className="wrap">
         <Link className="logo" to="/">UZ-GROW<small>GREENHOUSE SOLUTIONS</small></Link>
         <span className="grow" />
-        <span className="note">Xodim anketasi</span>
+        <span className="note">{label}</span>
       </div>
     </header>
   )
@@ -77,6 +79,7 @@ function AdminHeader() {
   const [theme, setTheme] = useTheme()
   const { data, replaceAll, reset, saveError, sync, syncError, pending, retrySync } = useOrg()
   const { enabled, email, rolNomi, signOut } = useAuth()
+  const yangi = useYangiArizalar(enabled)
   const fileRef = useRef<HTMLInputElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
   const syncLabel: Record<string, string> = {
@@ -125,6 +128,7 @@ function AdminHeader() {
         <div className="search">
           <input type="search" value={q} placeholder="Xodimni qidirish…" aria-label="Xodimni qidirish" onChange={(e) => onSearch(e.target.value)} />
         </div>
+        {enabled && <Link className="btn" to="/arizalar">📋 Anketalar{yangi > 0 && <span className="badge-n">{yangi}</span>}</Link>}
         <button type="button" className={`sync ${sync}`} title={syncError ?? syncLabel[sync]} onClick={() => (sync === 'offline' || sync === 'error') && retrySync()}>
           <i /> {syncLabel[sync]}
         </button>
@@ -165,17 +169,20 @@ function ScrollTop() {
 function Shell() {
   const loc = useLocation()
   const { enabled, session, isAdmin } = useAuth()
-  const employeePage = loc.pathname.startsWith('/a/') || loc.pathname.startsWith('/h/') || loc.pathname === '/login'
+  const p = loc.pathname
+  const miniLabel = p === '/anketa' ? 'Xodim anketasi' : p.startsWith('/a/') ? 'Mening anketam' : p === '/login' ? 'Kirish' : null
   const admin = !enabled || (!!session && isAdmin)
   return (
     <>
       <ScrollTop />
-      {employeePage ? <MiniHeader /> : admin ? <AdminHeader /> : <PublicHeader />}
+      {miniLabel ? <MiniHeader label={miniLabel} /> : admin ? <AdminHeader /> : <PublicHeader />}
       <main className="wrap">
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/h/:token" element={<InviteFill />} />
+          <Route path="/anketa" element={<AnketaForm />} />
           <Route path="/a/:token" element={<MyAnketa />} />
+          <Route path="/arizalar" element={<Arizalar />} />
+          <Route path="/arizalar/:id" element={<ArizaView />} />
           <Route path="/" element={<Overview />} />
           <Route path="/d/:id" element={<DeptView />} />
           <Route path="/x/:id" element={<Profile />} />

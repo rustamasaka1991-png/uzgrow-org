@@ -60,71 +60,40 @@ src/
 
 ## Kirish va huquqlar
 
-Ikki xil foydalanuvchi bor:
-
 | Kim | Qanday kiradi | Nima qila oladi |
 |---|---|---|
-| **HR / rahbariyat (admin)** | `#/login` — email + parol. Faqat `adminlar` jadvalidagi emaillar admin bo'ladi | Hamma narsa: bo'limlar, xodimlar, baholash, rivojlanish rejasi, taklif havolalari, shaxsiy havolalar |
-| **Xodim** | Faqat o'ziga berilgan shaxsiy havola `#/a/<token>` | Faqat o'z anketasi: shaxsiy, ta'lim, mehnat, oila, shaxsiyat, hobbi, maqsad, takliflar, rasm. Baholash va rivojlanish rejasini faqat ko'radi |
+| **HR / Rahbar (admin)** | `/#/login` — email + parol. Faqat `adminlar` jadvalidagi emaillar | Hamma narsa: bo'limlar, xodimlar, anketalarni qabul qilish, baholash, rivojlanish rejasi, shaxsiy havolalar |
+| **Hamma (loginsiz)** | Saytni ochadi, login so'ralmaydi | Faqat ko'rish: bo'limlar, ismlar, lavozimlar, rasmlar, kim kimga bo'ysunadi. Telefon, manzil, oila, baholash va boshqa anketa ma'lumotlari ko'rinmaydi |
+| **Yangi xodim** | Ochiq anketa havolasi `/#/anketa` | To'liq anketani bir marta to'ldirib HR ga yuboradi |
+| **Xodim** | Shaxsiy havola `/#/a/<token>` (HR beradi) | Faqat o'z anketasini keyin ham o'zgartiradi. Baholash va rivojlanish rejasini faqat ko'radi |
 
-**Yangi xodim qanday qo'shiladi**
+Kirish sahifasiga havola yo'q — HR/rahbar manzil qatoriga `/#/login` yozib kiradi. Hisoblar `ADMIN-KIRISH.txt` faylida (git'ga tushmaydi).
 
-1. HR bo'lim sahifasida **🔗 Taklif havolasi** → lavozim, rahbar, guruh → havola yaratiladi (`#/h/<token>`, bir marta ishlaydi).
-2. HR havolani xodimga yuboradi (Telegram/SMS). Xodim havolani ochib ismini kiritadi va anketasini to'ldiradi — u o'sha bo'limda paydo bo'ladi.
-3. Xodimga shaxsiy havola (`#/a/<token>`) ko'rsatiladi; HR ham uni xodim sahifasida ko'radi va kerak bo'lsa **Yangi havola** bilan almashtiradi (eski havola o'chadi).
+## Ish tartibi
 
-**Admin qo'shish**: Supabase SQL muharririda `insert into adminlar(email) values ('email@...')`, keyin o'sha odam `#/login` da ro'yxatdan o'tadi (emailga tasdiqlash xati keladi).
+1. **Anketa havolasi** hammaga bitta: https://uzgrow-org.vercel.app/#/anketa. HR uni yangi xodimga Telegram/SMS orqali yuboradi (sahifa "📋 Anketalar" da "Nusxalash" tugmasi bor).
+2. **Xodim anketani to'ldiradi** (7 bo'lim: shaxsiy, ta'lim, mehnat, oila, shaxsiyat, hobbi, maqsad; ism va telefon majburiy, rasm ixtiyoriy) va "Yuborish" bosadi.
+3. **HR ga tushadi**: sarlavhadagi "📋 Anketalar" tugmasida yangi anketalar soni chiqadi. HR ochadi, to'liq anketani o'qiydi.
+4. **Qabul qilish**: HR bo'limni (avtomatik "Sinov muddatidagilar"), lavozimni, rahbarni belgilab "Qabul qilish" bosadi → xodim tuzilmada paydo bo'ladi, anketasi to'liq ko'chadi, unga shaxsiy havola yaratiladi. "Rad etish" ham mumkin.
+5. **Sinov muddati tugagach** HR xodim sahifasida "Tahrirlash" → bo'limni doimiy bo'limga o'zgartiradi.
+6. **Baholash** (08) va **rivojlanish rejasi** (09) ni faqat HR/rahbar to'ldiradi; xodim shaxsiy havolasida ko'radi. **Takliflar** (10) ni xodim yozadi, holatini HR/rahbar o'zgartiradi.
+7. "Bevosita rahbari" ro'yxatida faqat rahbarlar chiqadi: CEO, bo'lim boshliqlari va qo'l ostida xodimi borlar.
+8. Zaxira: ☰ Menyu → JSON eksport.
+
+**Yangi admin qo'shish**: Supabase → SQL Editor: `insert into adminlar(email, rol, nomi) values ('email', 'hr', 'Ism')` (rol: `hr` yoki `rahbar`), keyin o'sha odam `/#/login` da ro'yxatdan o'tadi.
 
 ## Supabase
 
-`.env` da `VITE_SUPABASE_URL` va `VITE_SUPABASE_ANON_KEY` bo'lsa ilova Supabase bilan ishlaydi:
+Jadvallar: `bolimlar`, `xodimlar` (`token` — shaxsiy havola), `sozlamalar`, `arizalar` (to'ldirilgan anketalar), `adminlar`, `ariza_limit` (spam himoyasi). RPC: `tuzilma_ochiq` (ochiq ko'rish), `anketa_yuborish` (ochiq forma), `xodim_olish` / `xodim_saqlash` (shaxsiy havola), `is_admin`, `mening_rolim`. Migratsiyalar `supabase/` papkasida, pooler orqali qo'llangan (`aws-0-ap-northeast-2.pooler.supabase.com`).
 
-- jadvallar: `bolimlar`, `xodimlar` (`token` ustuni — shaxsiy havola), `sozlamalar`, `havolalar` (taklif havolalari), `adminlar`;
-- RLS: jadvallarga faqat `is_admin()` rost bo'lgan kirgan foydalanuvchi kira oladi; anonim kalit bilan jadvallarni o'qib bo'lmaydi;
-- xodimlar `security definer` RPC orqali ishlaydi: `havola_info`, `havola_toldirish`, `xodim_olish`, `xodim_saqlash` — token bo'yicha faqat o'z yozuvi, himoyalangan maydonlar (bo'lim, rahbar, lavozim, baholash, rivojlanish) server tomonida almashtirilmaydi;
-- admin tomonida har bir o'zgarish darhol yoziladi, boshqa kompyuterdagi o'zgarishlar realtime orqali ko'rinadi, oflaynda navbatga tushadi;
-- localStorage kesh sifatida qoladi. `.env` bo'lmasa ilova faqat lokal (havolalarsiz) rejimda ishlaydi.
-
-SQL migratsiyalar `scratchpad/migrate` skriptlari bilan pooler orqali qo'llangan (`aws-0-ap-northeast-2.pooler.supabase.com`).
-
-## Foydalanish yo'riqnomasi (HR va rahbar uchun)
-
-**Hisoblar** (parollar `ADMIN-KIRISH.txt` faylida, git'ga tushmaydi):
-
-| Rol | Email | Huquqlar |
-|---|---|---|
-| Rahbar (bosh direktor) | `rahbar@uzgrow.uz` | Hamma narsa + xodimlarni baholash |
-| HR | `hr@uzgrow.uz` | Hamma narsa + xodimlarni baholash |
-| Ta'sischi | `rustamasaka1991@gmail.com` | Hamma narsa |
-
-Xodimlarga login berilmaydi — ular faqat shaxsiy havola orqali kiradi va faqat o'z anketasini ko'radi.
-
-**Kundalik ish tartibi**
-
-1. https://uzgrow-org.vercel.app/#/login ga kiring (HR yoki rahbar).
-2. Yangi xodim kelsa: bo'lim sahifasi → **🔗 Taklif havolasi** → lavozim, rahbar → **Havola yaratish** → **Nusxalash** → xodimga Telegram/SMS orqali yuboring.
-3. Xodim havolani ochadi, ism va rasmini kiritadi, anketasini to'ldiradi. Shu zahoti bo'limda paydo bo'ladi; HR sahifada "Taklif havolalari" bo'limida "To'ldirildi" deb ko'rinadi.
-4. Xodim anketasini keyin ham o'zgartirishi uchun unga ko'rsatilgan shaxsiy havolani saqlab qo'yishi kerak. Yo'qotsa — HR xodim sahifasida **Nusxalash** yoki **Yangi havola** qiladi.
-5. Baholash: xodim sahifasi → 08 "Xodimni baholash" → **Tahrirlash** → ballar, davr, izoh → **Saqlash**. Xodim buni faqat ko'radi.
-6. Rivojlanish rejasi (09) ham faqat HR/rahbar tomonidan to'ldiriladi. Takliflar (10) ni xodim yozadi, holatini ("Ko'rib chiqilmoqda", "Tasdiqlandi"...) faqat HR/rahbar o'zgartiradi.
-7. Zaxira: ☰ Menyu → JSON eksport.
-
-**Yangi admin qo'shish**: Supabase → SQL Editor: `insert into adminlar(email, rol, nomi) values ('email', 'hr', 'Ism')` (rol: `hr` yoki `rahbar`), keyin o'sha odam `#/login` da ro'yxatdan o'tadi.
-
-## Ochiq ko'rish rejimi
-
-Saytni ochgan har kim (loginsiz) tuzilmani ko'radi: bo'limlar, ismlar, lavozimlar, rasmlar, kim kimga bo'ysunadi. Hech qanday tahrirlash tugmasi yo'q. Telefon, manzil, oila, baholash va boshqa anketa ma'lumotlari ko'rinmaydi — ular brauzerga umuman yuborilmaydi.
-
-Kirish sahifasiga havola yo'q: HR yoki rahbar manzil qatoriga `/#/login` qo'shib kiradi (masalan https://uzgrow-org.vercel.app/#/login). Kirgandan keyin to'liq rejim ochiladi, "Chiqish" bosilganda yana ochiq rejimga qaytadi va brauzerdagi ma'lumotlar tozalanadi.
-
-"Bevosita rahbari" ro'yxatida faqat rahbarlar chiqadi: CEO, bo'lim boshliqlari va qo'l ostida xodimi borlar.
+`.env` bo'lmasa ilova faqat lokal (localStorage) rejimda ishlaydi — anketa qabul va havolalar o'chadi.
 
 ## Xavfsizlik
 
-- Jadvallarga (`bolimlar`, `xodimlar`, `havolalar`, `sozlamalar`, `adminlar`) faqat `adminlar` ro'yxatidagi kirgan foydalanuvchi kira oladi (RLS). Anonim kalit bilan jadvalni o'qib ham, yozib ham bo'lmaydi.
-- Ochiq rejim `tuzilma_ochiq()` funksiyasidan foydalanadi — u faqat id, bo'lim, rahbar, ism, lavozim, guruh va rasmni qaytaradi.
-- Xodim o'z anketasiga 128-bitli tasodifiy token bilan kiradi; taklif havolasi bir martalik; HR tokenni istalgan vaqt almashtira oladi.
-- Xodim yuborgan ma'lumotdan server faqat ruxsat etilgan maydonlarni oladi (`xodim_birlashtir`): bo'lim, rahbar, lavozim, baholash, rivojlanish rejasini o'zgartirib bo'lmaydi.
-- Supabase bilan ishlaganda brauzerda ma'lumot keshlanmaydi; chiqishda hamma narsa tozalanadi; realtime obunalar faqat admin sessiyasida.
-- Vercel'da HTTP sarlavhalari (`vercel.json`): Content-Security-Policy (faqat o'z kodi va Supabase), X-Frame-Options DENY, nosniff, HSTS, Referrer-Policy no-referrer.
+- Jadvallarga faqat `adminlar` ro'yxatidagi kirgan foydalanuvchi kira oladi (RLS). Anonim kalit bilan jadvalni o'qib ham, yozib ham bo'lmaydi.
+- Ochiq rejim `tuzilma_ochiq()` orqali faqat id, bo'lim, rahbar, ism, lavozim, guruh va rasmni oladi — maxfiy maydonlar brauzerga yuborilmaydi.
+- Ochiq anketa formasi: faqat anketa maydonlari saqlanadi, 1.5 MB chegara, yashirin "honeypot" maydon (botlar uchun), bir IP dan soatiga 5 ta anketa.
+- Xodim o'z anketasiga 128-bitli tasodifiy token bilan kiradi; HR tokenni istalgan vaqt almashtira oladi. Xodim yuborgan ma'lumotdan server faqat ruxsat etilgan maydonlarni oladi — bo'lim, rahbar, lavozim, baholash, rivojlanish rejasi o'zgarmaydi.
+- Supabase bilan ishlaganda brauzerda ma'lumot keshlanmaydi; chiqishda tozalanadi; realtime faqat admin sessiyasida.
+- Vercel HTTP sarlavhalari (`vercel.json`): Content-Security-Policy, X-Frame-Options DENY, nosniff, HSTS, Referrer-Policy no-referrer.
 - Tavsiya: Supabase Dashboard → Authentication → "Disable new user signups" ni yoqing va Site URL ni https://uzgrow-org.vercel.app qiling.
