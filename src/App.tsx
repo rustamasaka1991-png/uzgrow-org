@@ -78,7 +78,7 @@ function AdminHeader() {
   const [menu, setMenu] = useState(false)
   const [theme, setTheme] = useTheme()
   const { data, replaceAll, reset, saveError, sync, syncError, pending, retrySync } = useOrg()
-  const { enabled, email, rolNomi, signOut } = useAuth()
+  const { enabled, email, rolNomi, signOut, changePassword } = useAuth()
   const yangi = useYangiArizalar(enabled)
   const fileRef = useRef<HTMLInputElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -118,6 +118,16 @@ function AdminHeader() {
     clearLocalData()
     nav('/')
   }
+  async function doChangePassword() {
+    setMenu(false)
+    const p1 = prompt('Yangi parol (kamida 8 ta belgi):')
+    if (p1 === null) return
+    const p2 = prompt('Yangi parolni qayta kiriting:')
+    if (p2 === null) return
+    if (p1 !== p2) { alert('Parollar mos kelmadi'); return }
+    const err = await changePassword(p1)
+    alert(err ?? "Parol o'zgartirildi. Keyingi kirishda yangi paroldan foydalaning.")
+  }
   const saved = new Date(data.updatedAt)
   const savedTxt = saved.getTime() > 86400000 ? `Saqlangan: ${saved.toLocaleDateString('uz')} ${saved.toLocaleTimeString('uz', { hour: '2-digit', minute: '2-digit' })}` : "Boshlang'ich ma'lumotlar"
 
@@ -150,6 +160,7 @@ function AdminHeader() {
               </div>
               <div className="dd-sep" />
               <button type="button" role="menuitem" className="danger" onClick={doReset}>↺ Boshlang'ich holatga qaytarish</button>
+              {enabled && <button type="button" role="menuitem" onClick={doChangePassword}>🔑 Parolni o'zgartirish</button>}
               {enabled && <button type="button" role="menuitem" onClick={doSignOut}>⎋ Chiqish</button>}
             </div>
           )}

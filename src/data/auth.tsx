@@ -15,6 +15,7 @@ type AuthCtx = {
   signIn: (email: string, password: string) => Promise<string | null>
   signUp: (email: string, password: string) => Promise<string | null>
   signOut: () => Promise<void>
+  changePassword: (password: string) => Promise<string | null>
 }
 
 const Ctx = createContext<AuthCtx | null>(null)
@@ -57,17 +58,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return null
   }, [])
   const signOut = useCallback(async () => { await supabase?.auth.signOut() }, [])
+  const changePassword = useCallback(async (password: string) => {
+    if (!supabase) return 'Supabase sozlanmagan'
+    if (password.length < 8) return 'Parol kamida 8 ta belgi bo’lsin'
+    const { error } = await supabase.auth.updateUser({ password })
+    return error ? xato(error.message) : null
+  }, [])
 
   const value = useMemo<AuthCtx>(() => ({
     enabled: !!supabase, loading, session, isAdmin: supabase ? isAdmin : true,
     rol: supabase ? rol.rol : 'hr', rolNomi: supabase ? (rol.nomi || (rol.rol === 'rahbar' ? 'Rahbar' : rol.rol === 'hr' ? 'HR' : '')) : 'Lokal',
-    email: session?.user.email ?? null, signIn, signUp, signOut,
-  }), [loading, session, isAdmin, rol, signIn, signUp, signOut])
+    email: session?.user.email ?? null, signIn, signUp, signOut, changePassword,
+  }), [loading, session, isAdmin, rol, signIn, signUp, signOut, changePassword])
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }
 
 function xato(m: string) {
   if (/Invalid login credentials/i.test(m)) return 'Email yoki parol noto’g’ri'
+  if (/Database error saving new user|admin ro.yxatida yo.q/i.test(m)) return 'Ro’yxatdan o’tish yopiq: bu email admin ro’yxatida yo’q'
   if (/Email not confirmed/i.test(m)) return 'Email hali tasdiqlanmagan — pochtangizdagi havolani bosing'
   if (/already registered/i.test(m)) return 'Bu email allaqachon ro’yxatdan o’tgan'
   if (/Password should be/i.test(m)) return 'Parol kamida 6 ta belgi bo’lsin'
