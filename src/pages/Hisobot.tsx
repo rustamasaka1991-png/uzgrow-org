@@ -41,7 +41,7 @@ export function Hisobot() {
       <div className="grid2">
         <section className="panel">
           <h3>Bo'limlar kesimida</h3>
-          <table className="hist-t full">
+          <div className="tbl"><table className="hist-t full">
             <thead><tr><th>Bo'lim</th><th>Xodim</th><th>Anketa</th><th>Baholangan</th><th>O'rtacha ball</th><th>60 dan past</th></tr></thead>
             <tbody>
               {rows.map(({ b, n, fill, ball, scored, low }) => (
@@ -55,7 +55,7 @@ export function Hisobot() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         </section>
         <div className="col">
           <section className="panel">

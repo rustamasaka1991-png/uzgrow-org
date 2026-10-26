@@ -12,7 +12,7 @@ export function Overview() {
   const nav = useNavigate()
   const [addDept, setAddDept] = useState(false)
   const [addEmp, setAddEmp] = useState(false)
-  const ceo = byId[data.ceoId]
+  const ceo = data.xodimlar.find((e) => e.id === data.ceoId) ?? data.xodimlar.find((e) => !e.rahbar) ?? (byId[data.ceoId] && !byId[data.ceoId].arxiv ? byId[data.ceoId] : undefined)
   const E = data.xodimlar
   const avg = E.length ? Math.round(E.reduce((a, e) => a + completeness(e), 0) / E.length) : 0
   const cols = Math.min(6, Math.max(1, data.bolimlar.length))

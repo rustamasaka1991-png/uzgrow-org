@@ -25,6 +25,22 @@ Belgilar: 🔴 — muhim, tezroq hal qilish kerak · 🟡 — o'rtacha, rejalash
 | ✅ | Hisobot yo'q edi | ☰ Menyu → "Hisobot": bo'limlar kesimida xodim soni, anketa %, o'rtacha ball, past ball; sinovdagilar; baholanmaganlar; anketalar statistikasi |
 | ✅ | Qidiruv tizimlari indekslashi mumkin edi | `noindex, nofollow` |
 
+**2026-10-26 to'liq tekshiruvda topilib tuzatilganlar:**
+
+| | Muammo | Tuzatildi |
+|---|---|---|
+| ✅ | Anketani qabul qilishda ma'lumot yuklanguncha bo'lim bo'sh qolib, xodim bo'limsiz yaratilishi mumkin edi | Bo'lim/rahbar yuklangach avtomatik qo'yiladi, bo'limsiz qabul qilib bo'lmaydi |
+| ✅ | Arxivdagi (ishdan ketgan) xodimning shaxsiy havolasi ishlashda davom etardi | Server: arxivdagi xodim havolasi "faol emas" deb rad etiladi |
+| ✅ | Xodim o'z havolasi orqali taklifining holatini ("Tasdiqlandi") o'zi qo'yishi mumkin edi | Server mavjud taklif holatini saqlaydi, yangi taklif har doim "Yangi" |
+| ✅ | CEO arxivga olinsa bosh sahifada ko'rinaverardi | Faqat faol xodim ko'rsatiladi |
+| ✅ | O'zgarishlar tarixida anketa holati (qabul/rad) o'zgarishi ko'rinmas edi | Endi ko'rinadi |
+| ✅ | Chop etishda yopiq bo'limlar chiqmas edi | "Chop etish" avval hamma bo'limni ochadi |
+| ✅ | Mobilda hisobot, tarix va bo'lim sahifalari ekrandan keng chiqardi, sarlavha juda baland edi | Jadvallar o'z ichida aylanadi, sarlavha ixcham (219px → 155px) |
+| ✅ | Ma'lumot yuklanguncha xodim/bo'lim sahifasi bosh sahifaga qaytarib yuborardi | "Yuklanmoqda…" ko'rsatiladi |
+| ✅ | Arxivda xodimi bor bo'limni o'chirishda tushunarsiz xabar | Aniq ko'rsatma chiqadi |
+
+To'liq tekshiruv (2026-10-26): ochiq va admin rejimda 15 ta sahifa ochildi — konsolda xato yo'q, desktop va 375px mobil o'lchamda gorizontal siljish yo'q.
+
 Qolgan bandlar (men qila olmaydiganlar yoki alohida qaror talab qiladiganlar) pastda.
 
 ---

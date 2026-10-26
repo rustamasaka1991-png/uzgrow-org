@@ -40,13 +40,17 @@ const MAYDON: Record<string, string> = {
   oila: 'oila', shaxsiyat: 'shaxsiyat', hobbi: 'hobbi', maqsad: 'maqsadlar', baholash: 'baholash', baholash_tarixi: 'baholash tarixi', rivojlanish: 'rivojlanish rejasi',
   takliflar: 'takliflar', arxiv: 'arxiv holati', sinov_boshlandi: 'sinov sanasi', rahbar_belgisi: 'rahbar belgisi', nomi: 'nomi', rang: 'rang', vazifalar: 'vazifalar', holat: 'holat', xodim_id: 'xodim',
 }
+const SKIP = new Set(['updated_at', 'created_at', 'tartib', 'data', 'token', 'ip', 'foto', 'id'])
 function changed(r: TarixRow): string {
-  const e = (r.eski?.data ?? r.eski ?? {}) as Record<string, unknown>
-  const y = (r.yangi?.data ?? r.yangi ?? {}) as Record<string, unknown>
   if (r.amal !== 'UPDATE') return ''
-  const keys = new Set([...Object.keys(e), ...Object.keys(y)])
-  const diff = [...keys].filter((k) => k !== 'foto' && JSON.stringify(e[k]) !== JSON.stringify(y[k])).map((k) => MAYDON[k] ?? k)
-  if (!diff.length && r.jadval === 'xodimlar') return 'rasm yoki havola'
+  const eo = (r.eski ?? {}) as Record<string, unknown>, yo = (r.yangi ?? {}) as Record<string, unknown>
+  const e = (eo.data ?? {}) as Record<string, unknown>, y = (yo.data ?? {}) as Record<string, unknown>
+  const keys = new Set([...Object.keys(e), ...Object.keys(y), ...Object.keys(eo), ...Object.keys(yo)])
+  const diff = [...keys].filter((k) => !SKIP.has(k)).filter((k) => {
+    const inData = k in e || k in y
+    return inData ? JSON.stringify(e[k]) !== JSON.stringify(y[k]) : JSON.stringify(eo[k]) !== JSON.stringify(yo[k])
+  }).map((k) => MAYDON[k] ?? k)
+  if (!diff.length) return r.jadval === 'xodimlar' ? 'rasm yoki havola' : r.jadval === 'bolimlar' ? 'tartib' : ''
   return diff.join(', ')
 }
 function nameOf(r: TarixRow) {
@@ -70,7 +74,7 @@ function Tarix() {
       <h3>Oxirgi 300 ta o'zgarish (180 kun saqlanadi)</h3>
       {err && <div className="err">{err}</div>}
       {loading ? <div className="empty-box">Yuklanmoqda…</div> : !rows.length ? <div className="empty-box">Hali yozuv yo'q</div> : (
-        <table className="hist-t full">
+        <div className="tbl"><table className="hist-t full">
           <thead><tr><th>Vaqt</th><th>Kim</th><th>Nima</th><th>Amal</th><th>O'zgargan maydonlar</th></tr></thead>
           <tbody>
             {rows.map((r) => (
@@ -83,7 +87,7 @@ function Tarix() {
               </tr>
             ))}
           </tbody>
-        </table>
+        </table></div>
       )}
     </div>
   )

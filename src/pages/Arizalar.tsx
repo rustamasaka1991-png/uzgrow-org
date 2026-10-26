@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { Anketa } from '../components/Anketa'
 import { Avatar } from '../components/Avatar'
@@ -79,6 +79,11 @@ export function ArizaView() {
   const [guruh, setGuruh] = useState('')
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState('')
+  // Ma'lumot keyinroq yuklansa — bo'lim va rahbar standart qiymatini shunda qo'yamiz
+  useEffect(() => {
+    if (!bolim && data.bolimlar.length) setBolim(data.bolimlar.some((b) => b.id === SINOV_BOLIM) ? SINOV_BOLIM : data.bolimlar[0].id)
+    if (!rahbar && data.ceoId && byId[data.ceoId]) setRahbar(data.ceoId)
+  }, [data.bolimlar, data.ceoId, byId, bolim, rahbar])
   if (enabled && (!session || !isAdmin)) return <Navigate to="/" replace />
   const a = list.find((x) => x.id === id)
   if (loading && !a) return <div className="center"><div className="spinner" /> Yuklanmoqda…</div>
@@ -90,6 +95,7 @@ export function ArizaView() {
     ev.preventDefault()
     if (!a) return
     if (!lavozim.trim()) { setErr('Lavozimni kiriting'); return }
+    if (!bolim || !data.bolimlar.some((b) => b.id === bolim)) { setErr("Bo'limni tanlang"); return }
     setBusy(true); setErr('')
     try {
       const xid = uniqueId(slug(a.data.ism ?? 'xodim'), new Set(allIds))

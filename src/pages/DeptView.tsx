@@ -23,8 +23,10 @@ export function DeptView() {
   const roots = ps.filter((e) => !byId[e.rahbar] || byId[e.rahbar].bolim !== id)
 
   function remove() {
-    if (ps.length) { alert("Bo'limda xodimlar bor. Avval ularni boshqa bo'limga o'tkazing yoki o'chiring."); return }
-    if (confirm(`"${d!.nomi}" bo'limi o'chirilsinmi?`)) { deleteDepartment(id); nav('/') }
+    if (ps.length) { alert("Bo'limda xodimlar bor. Avval ularni boshqa bo'limga o'tkazing yoki arxivga oling."); return }
+    if (!confirm(`"${d!.nomi}" bo'limi o'chirilsinmi?`)) return
+    if (!deleteDepartment(id)) { alert("Bo'limda arxivdagi (ishdan ketgan) xodimlar bor. Avval Boshqaruv → Arxiv bo'limida ularni boshqa bo'limga o'tkazing yoki butunlay o'chiring."); return }
+    nav('/')
   }
 
   return (

@@ -63,7 +63,7 @@ export function Profile() {
         {canEdit && (
           <>
             <span className="grow" />
-            <button type="button" className="btn" onClick={() => window.print()}>Chop etish</button>
+            <button type="button" className="btn" onClick={() => { document.querySelectorAll<HTMLDetailsElement>('details.sec').forEach((d) => { d.open = true }); setTimeout(() => window.print(), 150) }}>Chop etish</button>
             <button type="button" className="btn" onClick={() => setEdit(true)}>Tahrirlash</button>
             {e.arxiv
               ? <button type="button" className="btn" onClick={() => { if (confirm(`${e.ism} tuzilmaga qaytarilsinmi?`)) restoreEmployee(e.id) }}>↩ Arxivdan qaytarish</button>

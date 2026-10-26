@@ -323,3 +323,16 @@ textarea{resize:vertical}
 @media (max-width:760px){.hist-t.full th:nth-child(5),.hist-t.full td:nth-child(5){display:none}}
 .dropdown>.dd-link{display:block;text-align:left;padding:9px 12px;border-radius:8px;font-weight:500;text-decoration:none}
 .dropdown>.dd-link:hover{background:var(--bg)}
+
+/* mobil: grid ichidagi panellar kontentdan kengaymasin, jadvallar o'z ichida aylansin */
+.grid2>*{min-width:0}
+.tbl{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tbl table{min-width:520px}
+@media (max-width:520px){
+  header .wrap{gap:8px}
+  .sync{font-size:0;gap:0;padding:6px 8px;max-width:none}
+  .sync i{width:10px;height:10px}
+  .menu .btn,header a.btn{padding:6px 10px;font-size:13px}
+  .dhead{padding:12px}
+  .title-actions .btn{padding:6px 10px;font-size:13px}
+}
