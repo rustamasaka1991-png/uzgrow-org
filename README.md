@@ -75,7 +75,7 @@ Kirish sahifasiga havola yo'q — HR/rahbar manzil qatoriga `/#/login` yozib kir
 2. **Xodim anketani to'ldiradi** (7 bo'lim: shaxsiy, ta'lim, mehnat, oila, shaxsiyat, hobbi, maqsad; ism va telefon majburiy, rasm ixtiyoriy) va "Yuborish" bosadi.
 3. **HR ga tushadi**: sarlavhadagi "📋 Anketalar" tugmasida yangi anketalar soni chiqadi. HR ochadi, to'liq anketani o'qiydi.
 4. **Qabul qilish**: HR bo'limni (avtomatik "Sinov muddatidagilar"), lavozimni, rahbarni belgilab "Qabul qilish" bosadi → xodim tuzilmada paydo bo'ladi, anketasi to'liq ko'chadi, unga shaxsiy havola yaratiladi. "Rad etish" ham mumkin.
-5. **Sinov muddati tugagach** HR xodim sahifasida "Tahrirlash" → bo'limni doimiy bo'limga o'zgartiradi.
+5. **Sinov muddati tugagach** HR xodim sahifasidagi "⏳ Sinov muddatida" panelida bo'lim va rahbarni tanlab **"Doimiy bo'limga o'tkazish"** bosadi (yoki "Sinovdan o'tmadi → arxiv"). Kunlar hisobi ko'rinadi, 90 kundan oshsa qizil.
 6. **Baholash** (08) va **rivojlanish rejasi** (09) ni faqat HR/rahbar to'ldiradi; xodim shaxsiy havolasida ko'radi. **Takliflar** (10) ni xodim yozadi, holatini HR/rahbar o'zgartiradi.
 7. "Bevosita rahbari" ro'yxatida faqat rahbarlar chiqadi: CEO, bo'lim boshliqlari va qo'l ostida xodimi borlar.
 8. Zaxira: ☰ Menyu → JSON eksport.

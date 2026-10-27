@@ -2,7 +2,6 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { Anketa } from '../components/Anketa'
 import { Avatar } from '../components/Avatar'
-import { GroupSelect } from '../components/GroupSelect'
 import { useAuth } from '../data/auth'
 import { useArizalar } from '../data/arizalar'
 import { copyText } from '../data/invites'
@@ -77,17 +76,22 @@ export function ArizaView() {
   const [bolim, setBolim] = useState(data.bolimlar.some((b) => b.id === SINOV_BOLIM) ? SINOV_BOLIM : (data.bolimlar[0]?.id ?? ''))
   const [lavozim, setLavozim] = useState('')
   const [rahbar, setRahbar] = useState(() => byId[data.ceoId] ? data.ceoId : '')
-  const [guruh, setGuruh] = useState('')
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState('')
   const [saveMsg, setSaveMsg] = useState('')
+  const [lavozimTouched, setLavozimTouched] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
+  const a = list.find((x) => x.id === id)
   useEffect(() => {
     if (!bolim && data.bolimlar.length) setBolim(data.bolimlar.some((b) => b.id === SINOV_BOLIM) ? SINOV_BOLIM : data.bolimlar[0].id)
     if (!rahbar && data.ceoId && byId[data.ceoId]) setRahbar(data.ceoId)
   }, [data.bolimlar, data.ceoId, byId, bolim, rahbar])
+  // Lavozim avtomatik: anketada xodim yozgan "xohlagan lavozim" (HR o'zgartirishi mumkin)
+  useEffect(() => {
+    const want = a?.data.shaxsiy?.lavozim ?? ''
+    if (!lavozimTouched && want && !lavozim) setLavozim(want)
+  }, [a, lavozim, lavozimTouched])
   if (enabled && (!session || !isAdmin)) return <Navigate to="/" replace />
-  const a = list.find((x) => x.id === id)
   if (loading && !a) return <div className="center"><div className="spinner" /> Yuklanmoqda…</div>
   if (!a) return <Navigate to="/arizalar" replace />
   const e = emptyEmployee({ ...a.data, id: 'ariza' })
@@ -112,7 +116,7 @@ export function ArizaView() {
     setBusy(true); setErr('')
     try {
       const xid = uniqueId(slug(a.data.ism ?? 'xodim'), new Set(allIds))
-      const emp = emptyEmployee({ ...a.data, id: xid, bolim, rahbar, lavozim: lavozim.trim(), guruh: guruh.trim(),
+      const emp = emptyEmployee({ ...a.data, id: xid, bolim, rahbar, lavozim: lavozim.trim(), guruh: '',
         sinov_boshlandi: bolim === SINOV_BOLIM ? new Date().toISOString().slice(0, 10) : undefined })
       emp.shaxsiy.lavozim = lavozim.trim()
       addEmployee(emp)
@@ -167,20 +171,16 @@ export function ArizaView() {
                 {data.bolimlar.map((b) => <option key={b.id} value={b.id}>{b.nomi}</option>)}
               </select>
             </label>
-            <label className="field"><span>Lavozim *</span><input value={lavozim} onChange={(ev) => setLavozim(ev.target.value)} placeholder={e.shaxsiy.lavozim || 'Masalan: Buxgalter'} /></label>
+            <label className="field"><span>Lavozim *</span><input value={lavozim} onChange={(ev) => { setLavozimTouched(true); setLavozim(ev.target.value) }} placeholder="Masalan: Buxgalter" /></label>
           </div>
-          <div className="row2">
-            <label className="field"><span>Bevosita rahbari</span>
-              <select value={rahbar} onChange={(ev) => setRahbar(ev.target.value)}>
-                <option value="">— Yo'q —</option>
-                {managers.map((x) => <option key={x.id} value={x.id}>{x.ism} — {x.lavozim}</option>)}
-              </select>
-            </label>
-            <GroupSelect value={guruh} onChange={setGuruh} bolim={bolim} />
-          </div>
+          <label className="field"><span>Bevosita rahbari</span>
+            <select value={rahbar} onChange={(ev) => setRahbar(ev.target.value)}>
+              <option value="">— Yo'q —</option>
+              {managers.map((x) => <option key={x.id} value={x.id}>{x.ism} — {x.lavozim}</option>)}
+            </select>
+          </label>
           {err && <div className="err">{err}</div>}
           <div className="actions">
-            <button type="button" className="btn ghost" onClick={() => setLavozim(e.shaxsiy.lavozim)} disabled={!e.shaxsiy.lavozim}>Xohlagan lavozimini olish</button>
             <button type="submit" className="btn primary" disabled={busy}>{busy ? '…' : '✓ Qabul qilish va tuzilmaga qo’shish'}</button>
           </div>
         </form>

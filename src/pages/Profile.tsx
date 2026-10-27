@@ -3,6 +3,7 @@ import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { Anketa } from '../components/Anketa'
 import { Avatar } from '../components/Avatar'
 import { EmployeeForm } from '../components/EmployeeForm'
+import { SinovPanel } from '../components/SinovPanel'
 import { copyText } from '../data/invites'
 import { useOrg } from '../data/store'
 import { linkTo, supabase } from '../data/supabase'
@@ -126,6 +127,7 @@ export function Profile() {
         )}
       </div>
 
+      {canEdit && e.bolim === 'sinov' && !e.arxiv && <SinovPanel key={e.id} e={e} />}
       {canEdit ? (
         <Anketa e={e} mode="admin" save={(fn) => updateEmployee(e.id, fn)} />
       ) : (
