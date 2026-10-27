@@ -163,7 +163,8 @@ export function OrgProvider({ children }: { children: ReactNode }) {
         saveQueue(queue.current)
         setPending(queue.current.size)
       }
-      setSync('online'); setSyncError(null)
+      // Ma'lumot hali yuklanmagan bo'lsa "ulangan" demaymiz — sahifalar yuklanishni kutsin
+      if (loaded.current) { setSync('online'); setSyncError(null) }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e)
       setSync(isNetErr(msg) ? 'offline' : 'error')
