@@ -51,6 +51,13 @@ To'liq tekshiruv (2026-10-26): ochiq va admin rejimda 15 ta sahifa ochildi — k
 | ✅ | Guruh qo'lda yozilardi | Ro'yxatdan tanlash yoki yangi guruh |
 | ✅ | Kompyuter ilovasi yo'q edi | PWA: "⬇ Ilovani o'rnatish" tugmasi, ish stolida ikonka, alohida oyna |
 
+**2026-10-27 jonli saytda to'liq sinov:** ochiq rejim sahifalari, anketa (49 majburiy), HR qabul, xodim havolasi (jonli https manzil), 09 tahriri, arxiv — hammasi jonli saytda ishladi. Sinovda 2 ta xato topilib tuzatildi:
+
+| | Muammo | Tuzatildi |
+|---|---|---|
+| ✅ | Admin sahifasini (Anketalar, Hisobot, Boshqaruv) to'g'ridan-to'g'ri ochganda yoki yangilaganda sessiya tekshirilguncha bosh sahifaga qaytarib yuborardi | Yuklanish ko'rsatiladi, keyin sahifa ochiladi |
+| ✅ | Xodim yoki bo'lim sahifasini to'g'ridan-to'g'ri ochganda (havola orqali) ma'lumot yuklanmasdan "ulangan" holati qo'yilib, sahifa bosh sahifaga qaytardi | Holat faqat ma'lumot yuklangach "ulangan" bo'ladi |
+
 Qolgan bandlar (men qila olmaydiganlar yoki alohida qaror talab qiladiganlar) pastda.
 
 ---
