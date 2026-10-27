@@ -4,6 +4,7 @@ import { emptyEmployee } from '../data/seed'
 import type { Employee } from '../data/types'
 import { fileToDataUrl, slug, uniqueId } from '../lib/util'
 import { Avatar } from './Avatar'
+import { GroupSelect } from './GroupSelect'
 import { Modal } from './Modal'
 
 type Props = { initial?: Employee; defaultDept?: string; onClose: () => void; onSaved?: (id: string) => void }
@@ -38,8 +39,6 @@ export function EmployeeForm({ initial, defaultDept, onClose, onSaved }: Props) 
     if (cur && !list.some((x) => x.id === cur.id)) list.push(cur)
     return list
   }, [data.xodimlar, managers, byId, initial])
-
-  const groupsInDept = useMemo(() => Array.from(new Set(data.xodimlar.filter((x) => x.bolim === bolim && x.guruh).map((x) => x.guruh))), [data.xodimlar, bolim])
 
   // Bo'lim o'zgarganda rahbarni avtomatik taklif qilish
   const suggestBoss = (dept: string) => {
@@ -103,10 +102,7 @@ export function EmployeeForm({ initial, defaultDept, onClose, onSaved }: Props) 
             </select>
           </label>
         </div>
-        <label className="field"><span>Guruh (ixtiyoriy — bir xil guruhdagilar daraxtda birga ko'rsatiladi)</span>
-          <input value={guruh} onChange={(e) => setGuruh(e.target.value)} list="groups" placeholder="Masalan: Call operatorlar" />
-          <datalist id="groups">{groupsInDept.map((g) => <option key={g} value={g} />)}</datalist>
-        </label>
+        <GroupSelect value={guruh} onChange={setGuruh} bolim={bolim} label="Guruh (ixtiyoriy — bir xil guruhdagilar daraxtda birga ko'rsatiladi)" />
         <label className="check"><input type="checkbox" checked={rahbarBelgisi} onChange={(e) => setRahbarBelgisi(e.target.checked)} /> Rahbar (boshqalarga "bevosita rahbar" sifatida tanlanadi)</label>
         {err && <div className="err">{err}</div>}
         <div className="actions">

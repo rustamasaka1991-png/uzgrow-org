@@ -336,3 +336,12 @@ textarea{resize:vertical}
   .dhead{padding:12px}
   .title-actions .btn{padding:6px 10px;font-size:13px}
 }
+
+/* majburiy maydonlar */
+.aform .q.missing textarea,.aform .tl-edit.missing input{border-color:var(--bad);box-shadow:0 0 0 2px color-mix(in srgb,var(--bad) 25%,transparent)}
+.aform .q.missing .t{color:var(--bad)}
+.aform .sec.has-missing{border-color:var(--bad)}
+.cnt.err{color:var(--bad);font-weight:700}
+/* ilovani o'rnatish */
+.dropdown>.dd-install{text-align:left;border:0;background:none;padding:9px 12px;border-radius:8px;cursor:pointer;font-weight:600;color:var(--brand)}
+.dropdown>.dd-install:hover{background:var(--bg)}

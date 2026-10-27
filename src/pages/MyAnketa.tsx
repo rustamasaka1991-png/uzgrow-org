@@ -78,7 +78,7 @@ export function MyAnketa() {
         </div>
         <div className="facts">
           <div className="fact"><div className="k">Holat</div><div className="v">{status === 'saving' ? 'Saqlanmoqda…' : status === 'error' ? <span className="err">{err}</span> : 'Hammasi saqlangan ✓'}</div></div>
-          <div className="fact"><div className="k">Qoida</div><div className="v">Har bo'limda "Tahrirlash" → to'ldiring → "Saqlash". Baholash va rivojlanish rejasini rahbar/HR to'ldiradi.</div></div>
+          <div className="fact"><div className="k">Qoida</div><div className="v">Har bo'limda "Tahrirlash" → to'ldiring → "Saqlash". Faqat 08 "Baholash" bo'limini rahbar/HR to'ldiradi.</div></div>
         </div>
       </div>
       <Anketa e={e} mode="self" save={save} />

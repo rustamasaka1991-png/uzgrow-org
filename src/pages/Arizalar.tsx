@@ -1,14 +1,16 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { Anketa } from '../components/Anketa'
 import { Avatar } from '../components/Avatar'
+import { GroupSelect } from '../components/GroupSelect'
 import { useAuth } from '../data/auth'
 import { useArizalar } from '../data/arizalar'
 import { copyText } from '../data/invites'
 import { SINOV_BOLIM, emptyEmployee } from '../data/seed'
 import { useOrg } from '../data/store'
 import { linkTo, supabase, type Ariza } from '../data/supabase'
-import { norm, slug, uniqueId } from '../lib/util'
+import type { Employee } from '../data/types'
+import { fileToDataUrl, norm, slug, uniqueId } from '../lib/util'
 
 const HOLAT: Record<Ariza['holat'], string> = { yangi: 'Yangi', qabul: 'Qabul qilindi', rad: 'Rad etildi' }
 const fmt = (s: string) => new Date(s).toLocaleString('uz', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
@@ -23,7 +25,6 @@ export function Arizalar() {
   if (enabled && (!session || !isAdmin)) return <Navigate to="/" replace />
   const link = linkTo('/anketa')
   const shown = filter === 'yangi' ? list.filter((a) => a.holat === 'yangi') : list
-  // Takror: bir xil telefon yoki ism bilan boshqa anketa / mavjud xodim
   const tel = (s?: string) => (s ?? '').replace(/\D/g, '')
   const isDup = (a: Ariza) => {
     const t = tel(a.data.shaxsiy?.telefon), n = norm(a.data.ism ?? '')
@@ -36,7 +37,7 @@ export function Arizalar() {
     <>
       <div className="crumbs"><Link className="back" to="/">← Umumiy tuzilma</Link></div>
       <div className="titlebar">
-        <div><h1>To'ldirilgan anketalar</h1><p className="sub">Xodimlar ochiq havola orqali anketa to'ldiradi — shu yerga tushadi. Ochib, bo'lim va lavozimni belgilab qabul qilasiz.</p></div>
+        <div><h1>To'ldirilgan anketalar</h1><p className="sub">Xodimlar ochiq havola orqali anketa to'ldiradi — shu yerga tushadi. Ochib, tekshirib, bo'lim va lavozimni belgilab qabul qilasiz.</p></div>
       </div>
       <div className="panel" style={{ marginBottom: 18 }}>
         <h3>Anketa havolasi (hammaga bitta)</h3>
@@ -66,12 +67,12 @@ export function Arizalar() {
   )
 }
 
-/** HR: bitta anketani ko'rish va qabul qilish */
+/** HR: bitta anketani ko'rish, tahrirlash va qabul qilish */
 export function ArizaView() {
   const { id = '' } = useParams()
   const nav = useNavigate()
   const { enabled, session, isAdmin } = useAuth()
-  const { list, loading, setHolat, remove } = useArizalar()
+  const { list, loading, setHolat, updateData, remove } = useArizalar()
   const { data, managers, byId, allIds, addEmployee, deptOf } = useOrg()
   const [bolim, setBolim] = useState(data.bolimlar.some((b) => b.id === SINOV_BOLIM) ? SINOV_BOLIM : (data.bolimlar[0]?.id ?? ''))
   const [lavozim, setLavozim] = useState('')
@@ -79,7 +80,8 @@ export function ArizaView() {
   const [guruh, setGuruh] = useState('')
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState('')
-  // Ma'lumot keyinroq yuklansa — bo'lim va rahbar standart qiymatini shunda qo'yamiz
+  const [saveMsg, setSaveMsg] = useState('')
+  const fileRef = useRef<HTMLInputElement>(null)
   useEffect(() => {
     if (!bolim && data.bolimlar.length) setBolim(data.bolimlar.some((b) => b.id === SINOV_BOLIM) ? SINOV_BOLIM : data.bolimlar[0].id)
     if (!rahbar && data.ceoId && byId[data.ceoId]) setRahbar(data.ceoId)
@@ -91,6 +93,17 @@ export function ArizaView() {
   const e = emptyEmployee({ ...a.data, id: 'ariza' })
   const xodim = a.xodim_id ? byId[a.xodim_id] : undefined
 
+  /** HR anketa bo'limini o'zgartiradi — bazadagi anketaga yoziladi */
+  const save = (fn: (x: Employee) => Employee) => {
+    const next = fn(e)
+    const { id: _id, ...clean } = next
+    setSaveMsg('Saqlanmoqda…')
+    updateData(a.id, clean).then(() => { setSaveMsg('Saqlandi ✓'); setTimeout(() => setSaveMsg(''), 2000) }).catch((ex) => setSaveMsg('Xato: ' + String((ex as Error).message ?? ex)))
+  }
+  async function onPhoto(f: File | undefined) {
+    if (!f) return
+    try { const foto = await fileToDataUrl(f); save((x) => ({ ...x, foto })) } catch (ex) { alert(String(ex)) }
+  }
   async function accept(ev: FormEvent) {
     ev.preventDefault()
     if (!a) return
@@ -121,13 +134,17 @@ export function ArizaView() {
       <div className="crumbs no-print">
         <Link className="back" to="/arizalar">← Anketalar</Link>
         <span className="grow" />
-        {a.holat !== 'rad' && a.holat !== 'qabul' && <button type="button" className="btn danger ghost" onClick={reject}>Rad etish</button>}
+        {saveMsg && <span className="note">{saveMsg}</span>}
+        {a.holat === 'yangi' && <button type="button" className="btn danger ghost" onClick={reject}>Rad etish</button>}
         <button type="button" className="btn ghost" onClick={del}>O'chirish</button>
       </div>
       <div className="hero">
         <div className="band" />
         <div className="in">
-          <Avatar e={e} size="lg" />
+          <button type="button" className="av-btn" onClick={() => fileRef.current?.click()} title="Rasm yuklash / almashtirish">
+            <Avatar e={e} size="lg" /><span className="av-hint">Rasm</span>
+          </button>
+          <input ref={fileRef} type="file" accept="image/*" hidden onChange={(ev) => { onPhoto(ev.target.files?.[0]); ev.target.value = '' }} />
           <div className="who">
             <h2>{e.shaxsiy.fish || e.ism}</h2>
             <div className="pos">Anketa · {fmt(a.created_at)} · <b>{HOLAT[a.holat]}</b>{xodim ? <> · <Link to={`/x/${xodim.id}`}>{xodim.ism} (tuzilmada)</Link></> : null}</div>
@@ -138,6 +155,7 @@ export function ArizaView() {
             <div className="fact" key={k}><div className="k">{k}</div><div className="v">{v || <span style={{ color: 'var(--muted)' }}>—</span>}</div></div>
           ))}
         </div>
+        {!e.foto && <div className="subs"><span className="note">Rasm yo'q — avatarni bosib yuklashingiz mumkin.</span></div>}
       </div>
 
       {a.holat === 'yangi' && supabase && (
@@ -158,7 +176,7 @@ export function ArizaView() {
                 {managers.map((x) => <option key={x.id} value={x.id}>{x.ism} — {x.lavozim}</option>)}
               </select>
             </label>
-            <label className="field"><span>Guruh (ixtiyoriy)</span><input value={guruh} onChange={(ev) => setGuruh(ev.target.value)} placeholder="Masalan: Call operatorlar" /></label>
+            <GroupSelect value={guruh} onChange={setGuruh} bolim={bolim} />
           </div>
           {err && <div className="err">{err}</div>}
           <div className="actions">
@@ -168,7 +186,8 @@ export function ArizaView() {
         </form>
       )}
 
-      <Anketa e={e} mode="view" />
+      <p className="note no-print">Anketadagi har bir bo'limni "Tahrirlash" orqali to'g'rilashingiz mumkin — o'zgarishlar anketaga yoziladi{a.holat === 'qabul' ? ' (tuzilmadagi xodim anketasini uning sahifasida o’zgartiring)' : ', qabul qilinganda xodimga ko’chadi'}.</p>
+      <Anketa e={e} mode="admin" save={save} />
     </div>
   )
 }

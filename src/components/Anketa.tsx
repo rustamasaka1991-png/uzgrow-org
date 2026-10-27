@@ -16,7 +16,8 @@ export function Anketa({ e, mode, save }: { e: Employee; mode: 'admin' | 'self' 
   const { email, rolNomi } = useAuth()
   const baholovchi = email ? `${rolNomi || 'Admin'} (${email})` : undefined
   const sc = score(e)
-  const canEdit = (k: SectionKey) => mode === 'admin' || (mode === 'self' && k !== 'baholash' && k !== 'rivojlanish')
+  // Xodim o'zi: baholashdan tashqari hammasini to'ldiradi (rivojlanish rejasi ham)
+  const canEdit = (k: SectionKey) => mode === 'admin' || (mode === 'self' && k !== 'baholash')
   const secCount = (k: SectionKey) => {
     const s = ANKETA[k]
     if (s.turi === 'qa') return `${s.savollar.filter(([q]) => filled(e[k as QAKey][q])).length}/${s.savollar.length}`

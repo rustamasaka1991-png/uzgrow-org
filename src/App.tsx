@@ -3,7 +3,17 @@ import { HashRouter, Link, Route, Routes, useLocation, useNavigate, useSearchPar
 import { useYangiArizalar } from './data/arizalar'
 import { AuthProvider, useAuth } from './data/auth'
 import { OrgProvider, clearLocalData, useOrg } from './data/store'
+import { usePwaInstall } from './lib/pwa'
 import { download } from './lib/util'
+
+/** "Ilovani o'rnatish" — Chrome/Edge o'rnatishga tayyor bo'lganda chiqadi; iPhone'da yo'riqnoma. */
+function InstallButton({ className = 'btn' }: { className?: string }) {
+  const { canInstall, installed, isIos, install } = usePwaInstall()
+  if (installed) return null
+  if (canInstall) return <button type="button" className={className} onClick={() => { void install() }} title="Kompyuter yoki telefonga ilova sifatida o'rnatish">⬇ Ilovani o'rnatish</button>
+  if (isIos) return <button type="button" className={className} onClick={() => alert("iPhone: Safari'da pastdagi “Ulashish” tugmasi → “Uy ekraniga qo’shish”.")}>⬇ Ilovani o'rnatish</button>
+  return null
+}
 import { AnketaForm } from './pages/AnketaForm'
 import { ArizaView, Arizalar } from './pages/Arizalar'
 import { Boshqaruv } from './pages/Boshqaruv'
@@ -36,6 +46,7 @@ function MiniHeader({ label }: { label: string }) {
         <Link className="logo" to="/">UZ-GROW<small>GREENHOUSE SOLUTIONS</small></Link>
         <span className="grow" />
         <span className="note">{label}</span>
+        <InstallButton />
       </div>
     </header>
   )
@@ -69,6 +80,7 @@ function PublicHeader() {
           <input type="search" value={q} placeholder="Xodimni qidirish…" aria-label="Xodimni qidirish" onChange={(e) => onSearch(e.target.value)} />
         </div>
         <span className={`sync ${sync === 'public' ? 'online' : sync}`} title={syncError ?? ''}><i /> {sync === 'public' ? "Ko'rish rejimi" : sync === 'loading' ? 'Yuklanmoqda…' : 'Ulanish yo’q'}</span>
+        <InstallButton />
       </div>
     </header>
   )
@@ -167,6 +179,7 @@ function AdminHeader() {
               </div>
               <div className="dd-sep" />
               <button type="button" role="menuitem" className="danger" onClick={doReset}>↺ Boshlang'ich holatga qaytarish</button>
+              <InstallButton className="dd-install" />
               {enabled && <button type="button" role="menuitem" onClick={doChangePassword}>🔑 Parolni o'zgartirish</button>}
               {enabled && <button type="button" role="menuitem" onClick={doSignOut}>⎋ Chiqish</button>}
             </div>

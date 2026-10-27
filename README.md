@@ -108,3 +108,11 @@ Jadvallar: `bolimlar`, `xodimlar` (`token` — shaxsiy havola), `sozlamalar`, `a
 - **Parolni o'zgartirish**, 4 soat harakatsizlikdan keyin avtomatik chiqish.
 - Anketa formasi javoblarni brauzerda avtomatik saqlaydi (qoralama).
 - `api/ping.js` + `vercel.json` cron: har kuni Supabase'ga so'rov — bepul loyiha uxlab qolmaydi.
+
+## 2026-10-27 yangiliklari
+
+- **Anketa formasi**: 9 bo'lim (09 Rivojlanish va karyera rejasi, 10 Takliflar qo'shildi), 49 savol **majburiy** — bo'sh qoldirib yuborib bo'lmaydi, bo'sh joylar qizil belgilanadi. Takliflar ixtiyoriy. Rasm ixtiyoriy (HR keyin yuklaydi).
+- **HR anketani tahrirlaydi**: "📋 Anketalar" → anketa → har bo'limda "Tahrirlash" (bazaga yoziladi), avatarni bosib rasm yuklaydi — qabul qilishdan oldin ham, keyin ham.
+- **Xodim** o'z havolasi orqali 08 "Baholash"dan tashqari hamma bo'limni (09 ham) o'zgartiradi.
+- **Guruh** maydoni ro'yxat: mavjud guruhlardan tanlash yoki "+ Yangi guruh…".
+- **Ilova (PWA)**: saytda "⬇ Ilovani o'rnatish" tugmasi (Chrome/Edge, Android). Kompyuterda ish stolida ikonka bilan alohida oynada ochiladi; iPhone'da Safari → Ulashish → "Uy ekraniga qo'shish". `vite-plugin-pwa`, ikonkalar `public/` da.

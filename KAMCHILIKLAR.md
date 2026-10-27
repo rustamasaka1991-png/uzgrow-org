@@ -41,6 +41,16 @@ Belgilar: 🔴 — muhim, tezroq hal qilish kerak · 🟡 — o'rtacha, rejalash
 
 To'liq tekshiruv (2026-10-26): ochiq va admin rejimda 15 ta sahifa ochildi — konsolda xato yo'q, desktop va 375px mobil o'lchamda gorizontal siljish yo'q.
 
+**2026-10-27 qo'shilganlar (tekshirilgan):**
+
+| | Edi | Endi |
+|---|---|---|
+| ✅ | Anketada savollarni bo'sh qoldirib yuborish mumkin edi | 49 savol majburiy, bo'sh joylar qizil ko'rsatiladi, yuborilmaydi |
+| ✅ | 09 Rivojlanish va 10 Takliflar formada yo'q edi | Formada ham, xodim havolasida ham to'ldiriladi (faqat 08 Baholash HR/rahbar uchun) |
+| ✅ | HR anketani o'zgartira olmas edi | Har bo'limni tahrirlaydi, rasm yuklaydi (bazaga yoziladi) |
+| ✅ | Guruh qo'lda yozilardi | Ro'yxatdan tanlash yoki yangi guruh |
+| ✅ | Kompyuter ilovasi yo'q edi | PWA: "⬇ Ilovani o'rnatish" tugmasi, ish stolida ikonka, alohida oyna |
+
 Qolgan bandlar (men qila olmaydiganlar yoki alohida qaror talab qiladiganlar) pastda.
 
 ---

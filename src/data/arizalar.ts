@@ -30,6 +30,14 @@ export function useArizalar() {
     await reload()
   }, [reload])
 
+  /** HR anketa ma'lumotini o'zgartiradi (qabul qilishdan oldin yoki keyin) */
+  const updateData = useCallback(async (id: string, data: unknown) => {
+    if (!supabase) throw new Error('Supabase sozlanmagan')
+    const { error } = await supabase.from('arizalar').update({ data, updated_at: new Date().toISOString() }).eq('id', id)
+    if (error) throw new Error(error.message)
+    setList((l) => l.map((a) => (a.id === id ? { ...a, data: data as Ariza['data'] } : a)))
+  }, [])
+
   const remove = useCallback(async (id: string) => {
     if (!supabase) throw new Error('Supabase sozlanmagan')
     const { error } = await supabase.from('arizalar').delete().eq('id', id)
@@ -37,7 +45,7 @@ export function useArizalar() {
     await reload()
   }, [reload])
 
-  return { list, error, loading, setHolat, remove, reload, yangi: list.filter((a) => a.holat === 'yangi').length }
+  return { list, error, loading, setHolat, updateData, remove, reload, yangi: list.filter((a) => a.holat === 'yangi').length }
 }
 
 /** Faqat yangi anketalar soni (sarlavha uchun). */
