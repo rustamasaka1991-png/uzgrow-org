@@ -7,9 +7,10 @@ import { completeness, daysSince, score } from '../lib/util'
 
 /** HR: qisqa hisobot — bo'limlar kesimida va sinov muddati */
 export function Hisobot() {
-  const { enabled, session, isAdmin } = useAuth()
+  const { enabled, session, isAdmin, loading } = useAuth()
   const { data, archived, byId } = useOrg()
   const { list } = useArizalar()
+  if (enabled && loading) return <div className="center"><div className="spinner" /> Yuklanmoqda…</div>
   if (enabled && (!session || !isAdmin)) return <Navigate to="/" replace />
   const E = data.xodimlar
   const avg = (xs: number[]) => (xs.length ? Math.round(xs.reduce((a, b) => a + b, 0) / xs.length) : null)

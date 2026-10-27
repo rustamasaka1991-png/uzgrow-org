@@ -12,7 +12,8 @@ const fmt = (s: string) => new Date(s).toLocaleString('uz', { day: '2-digit', mo
 /** HR: o'zgarishlar tarixi, zaxiralar, arxiv (ishdan ketganlar) */
 export function Boshqaruv() {
   const { tab = 'tarix' } = useParams<{ tab: Tab }>()
-  const { enabled, session, isAdmin } = useAuth()
+  const { enabled, session, isAdmin, loading } = useAuth()
+  if (enabled && loading) return <div className="center"><div className="spinner" /> Yuklanmoqda…</div>
   if (enabled && (!session || !isAdmin)) return <Navigate to="/" replace />
   return (
     <>

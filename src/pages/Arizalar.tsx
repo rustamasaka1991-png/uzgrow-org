@@ -16,11 +16,12 @@ const fmt = (s: string) => new Date(s).toLocaleString('uz', { day: '2-digit', mo
 
 /** HR: to'ldirilgan anketalar ro'yxati */
 export function Arizalar() {
-  const { enabled, session, isAdmin } = useAuth()
+  const { enabled, session, isAdmin, loading: authLoading } = useAuth()
   const { list, error, loading } = useArizalar()
   const { data } = useOrg()
   const [filter, setFilter] = useState<'yangi' | 'hammasi'>('yangi')
   const [copied, setCopied] = useState(false)
+  if (enabled && authLoading) return <div className="center"><div className="spinner" /> Yuklanmoqda…</div>
   if (enabled && (!session || !isAdmin)) return <Navigate to="/" replace />
   const link = linkTo('/anketa')
   const shown = filter === 'yangi' ? list.filter((a) => a.holat === 'yangi') : list
@@ -70,7 +71,7 @@ export function Arizalar() {
 export function ArizaView() {
   const { id = '' } = useParams()
   const nav = useNavigate()
-  const { enabled, session, isAdmin } = useAuth()
+  const { enabled, session, isAdmin, loading: authLoading } = useAuth()
   const { list, loading, setHolat, updateData, remove } = useArizalar()
   const { data, managers, byId, allIds, addEmployee, deptOf } = useOrg()
   const [bolim, setBolim] = useState(data.bolimlar.some((b) => b.id === SINOV_BOLIM) ? SINOV_BOLIM : (data.bolimlar[0]?.id ?? ''))
@@ -91,6 +92,7 @@ export function ArizaView() {
     const want = a?.data.shaxsiy?.lavozim ?? ''
     if (!lavozimTouched && want && !lavozim) setLavozim(want)
   }, [a, lavozim, lavozimTouched])
+  if (enabled && authLoading) return <div className="center"><div className="spinner" /> Yuklanmoqda…</div>
   if (enabled && (!session || !isAdmin)) return <Navigate to="/" replace />
   if (loading && !a) return <div className="center"><div className="spinner" /> Yuklanmoqda…</div>
   if (!a) return <Navigate to="/arizalar" replace />
