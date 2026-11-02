@@ -347,3 +347,22 @@ textarea{resize:vertical}
 .dropdown>.dd-install:hover{background:var(--bg)}
 .accept.sinov{border-color:var(--warn)}
 .accept.sinov.warn{border-color:var(--bad)}
+
+/* fayllar: pasport va qo'shimcha rasmlar */
+.files{display:grid;gap:14px}
+.fgroup .ftitle{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:8px}
+.frow{display:flex;gap:12px;flex-wrap:wrap}
+.fslot{width:140px;display:flex;flex-direction:column;gap:4px;position:relative}
+.fslot img{width:140px;height:100px;object-fit:cover;border-radius:10px;border:1px solid var(--line);cursor:zoom-in;background:var(--bg)}
+.fslot .fadd{width:140px;height:100px;border:2px dashed var(--line);border-radius:10px;display:grid;place-items:center;font-size:28px;color:var(--muted);cursor:pointer;background:var(--bg)}
+.fslot .fadd.empty{cursor:default;font-size:16px}
+.fslot .fadd:hover{border-color:var(--c)}
+.fslot.req .fadd{border-color:var(--warn)}
+.fslot .flabel{font-size:12px;color:var(--muted)}
+.fslot .fdel{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.55);color:#fff}
+.bigimg{max-width:95vw;max-height:90vh;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.photo-row.missing .av{box-shadow:0 0 0 3px var(--bad)}
+.toldirish{margin-bottom:16px;border-left:6px solid var(--warn)}
+.toldirish.ok{border-left-color:var(--ok)}
+.aform .sec summary .num{background:var(--c)}
+@media (max-width:520px){.fslot,.fslot img,.fslot .fadd{width:calc(50vw - 32px)}}

@@ -1,16 +1,19 @@
 import { useCallback, useEffect, useState } from 'react'
-import { supabase, type Ariza } from './supabase'
+import { supabase, type Ariza, type ArizaLite } from './supabase'
 
-/** To'ldirilgan anketalar (faqat admin). Realtime bilan yangilanadi. */
+/** Ro'yxat uchun faqat yengil ustunlar — javoblar va katta rasmlar yuklanmaydi (tezlik) */
+const LITE = 'id,holat,xodim_id,created_at,ism:data->>ism,telefon:data->shaxsiy->>telefon,lavozim:data->shaxsiy->>lavozim,foto:data->>foto'
+
+/** To'ldirilgan anketalar ro'yxati (faqat admin). Realtime bilan yangilanadi. */
 export function useArizalar() {
-  const [list, setList] = useState<Ariza[]>([])
+  const [list, setList] = useState<ArizaLite[]>([])
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(!!supabase)
 
   const reload = useCallback(async () => {
     if (!supabase) return
-    const { data, error } = await supabase.from('arizalar').select('*').order('created_at', { ascending: false }).limit(300)
-    if (error) setError(error.message); else { setError(null); setList((data ?? []) as Ariza[]) }
+    const { data, error } = await supabase.from('arizalar').select(LITE).order('created_at', { ascending: false }).limit(500)
+    if (error) setError(error.message); else { setError(null); setList((data ?? []) as unknown as ArizaLite[]) }
     setLoading(false)
   }, [])
 
@@ -30,14 +33,6 @@ export function useArizalar() {
     await reload()
   }, [reload])
 
-  /** HR anketa ma'lumotini o'zgartiradi (qabul qilishdan oldin yoki keyin) */
-  const updateData = useCallback(async (id: string, data: unknown) => {
-    if (!supabase) throw new Error('Supabase sozlanmagan')
-    const { error } = await supabase.from('arizalar').update({ data, updated_at: new Date().toISOString() }).eq('id', id)
-    if (error) throw new Error(error.message)
-    setList((l) => l.map((a) => (a.id === id ? { ...a, data: data as Ariza['data'] } : a)))
-  }, [])
-
   const remove = useCallback(async (id: string) => {
     if (!supabase) throw new Error('Supabase sozlanmagan')
     const { error } = await supabase.from('arizalar').delete().eq('id', id)
@@ -45,7 +40,46 @@ export function useArizalar() {
     await reload()
   }, [reload])
 
-  return { list, error, loading, setHolat, updateData, remove, reload, yangi: list.filter((a) => a.holat === 'yangi').length }
+  return { list, error, loading, setHolat, remove, reload, yangi: list.filter((a) => a.holat === 'yangi').length }
+}
+
+/** Bitta anketa to'liq (HR ochganda) */
+export function useAriza(id: string) {
+  const [ariza, setAriza] = useState<Ariza | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  const reload = useCallback(async () => {
+    if (!supabase || !id) return
+    const { data, error } = await supabase.from('arizalar').select('*').eq('id', id).maybeSingle()
+    if (error) setError(error.message); else { setError(null); setAriza((data as Ariza) ?? null) }
+    setLoading(false)
+  }, [id])
+
+  useEffect(() => { setLoading(true); void reload() }, [reload])
+
+  /** HR anketa ma'lumotini o'zgartiradi */
+  const updateData = useCallback(async (data: unknown) => {
+    if (!supabase) throw new Error('Supabase sozlanmagan')
+    const { error } = await supabase.from('arizalar').update({ data, updated_at: new Date().toISOString() }).eq('id', id)
+    if (error) throw new Error(error.message)
+    setAriza((a) => (a ? { ...a, data: data as Ariza['data'] } : a))
+  }, [id])
+
+  const setHolat = useCallback(async (holat: Ariza['holat'], extra: { xodim_id?: string | null; izoh?: string } = {}) => {
+    if (!supabase) throw new Error('Supabase sozlanmagan')
+    const { error } = await supabase.from('arizalar').update({ holat, updated_at: new Date().toISOString(), ...extra }).eq('id', id)
+    if (error) throw new Error(error.message)
+    await reload()
+  }, [id, reload])
+
+  const remove = useCallback(async () => {
+    if (!supabase) throw new Error('Supabase sozlanmagan')
+    const { error } = await supabase.from('arizalar').delete().eq('id', id)
+    if (error) throw new Error(error.message)
+  }, [id])
+
+  return { ariza, error, loading, updateData, setHolat, remove, reload }
 }
 
 /** Faqat yangi anketalar soni (sarlavha uchun). */

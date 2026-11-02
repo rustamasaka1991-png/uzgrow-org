@@ -2,19 +2,21 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { Anketa } from '../components/Anketa'
 import { Avatar } from '../components/Avatar'
+import { FilesPanel } from '../components/FilesPanel'
 import { useAuth } from '../data/auth'
-import { useArizalar } from '../data/arizalar'
+import { useAriza, useArizalar } from '../data/arizalar'
+import { copyArizaFilesToXodim, createToldirishLink, useFayllar, useToldirishLinks } from '../data/fayllar'
 import { copyText } from '../data/invites'
 import { SINOV_BOLIM, emptyEmployee } from '../data/seed'
 import { useOrg } from '../data/store'
-import { linkTo, supabase, type Ariza } from '../data/supabase'
+import { linkTo, supabase, type ArizaHolat, type ArizaLite } from '../data/supabase'
 import type { Employee } from '../data/types'
-import { fileToDataUrl, norm, slug, uniqueId } from '../lib/util'
+import { fileToDataUrl, keyLabel, missingKeys, norm, slug, uniqueId } from '../lib/util'
 
-const HOLAT: Record<Ariza['holat'], string> = { yangi: 'Yangi', qabul: 'Qabul qilindi', rad: 'Rad etildi' }
+const HOLAT: Record<ArizaHolat, string> = { yangi: 'Yangi', qabul: 'Qabul qilindi', rad: 'Rad etildi' }
 const fmt = (s: string) => new Date(s).toLocaleString('uz', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 
-/** HR: to'ldirilgan anketalar ro'yxati */
+/** HR: to'ldirilgan anketalar ro'yxati (yengil ko'rinish — tez yuklanadi) */
 export function Arizalar() {
   const { enabled, session, isAdmin, loading: authLoading } = useAuth()
   const { list, error, loading } = useArizalar()
@@ -25,10 +27,10 @@ export function Arizalar() {
   if (enabled && (!session || !isAdmin)) return <Navigate to="/" replace />
   const link = linkTo('/anketa')
   const shown = filter === 'yangi' ? list.filter((a) => a.holat === 'yangi') : list
-  const tel = (s?: string) => (s ?? '').replace(/\D/g, '')
-  const isDup = (a: Ariza) => {
-    const t = tel(a.data.shaxsiy?.telefon), n = norm(a.data.ism ?? '')
-    const other = list.some((b) => b.id !== a.id && ((t && tel(b.data.shaxsiy?.telefon) === t) || (n && norm(b.data.ism ?? '') === n)))
+  const tel = (s?: string | null) => (s ?? '').replace(/\D/g, '')
+  const isDup = (a: ArizaLite) => {
+    const t = tel(a.telefon), n = norm(a.ism ?? '')
+    const other = list.some((b) => b.id !== a.id && ((t && tel(b.telefon) === t) || (n && norm(b.ism ?? '') === n)))
     const emp = data.xodimlar.some((e) => (t && tel(e.shaxsiy.telefon) === t) || (n && norm(e.ism) === n))
     return other || (emp && a.holat !== 'qabul')
   }
@@ -42,7 +44,6 @@ export function Arizalar() {
       <div className="panel" style={{ marginBottom: 18 }}>
         <h3>Anketa havolasi (hammaga bitta)</h3>
         <div className="link-box"><code>{link}</code><button type="button" className="btn primary" onClick={copy}>{copied ? 'Nusxalandi ✓' : 'Nusxalash'}</button></div>
-        <p className="note" style={{ marginTop: 8 }}>Yangi xodimga shu havolani yuboring. U to'ldirib yuboradi, anketa shu ro'yxatda paydo bo'ladi.</p>
       </div>
       <div className="tabs">
         <button type="button" className="tab" aria-current={filter === 'yangi' ? 'true' : undefined} onClick={() => setFilter('yangi')}>Yangi ({list.filter((a) => a.holat === 'yangi').length})</button>
@@ -54,10 +55,10 @@ export function Arizalar() {
         {!loading && !shown.length && <div className="empty-box">{filter === 'yangi' ? 'Yangi anketa yo’q' : 'Hali anketa kelmagan'}</div>}
         {shown.map((a) => (
           <Link key={a.id} className="ariza" to={`/arizalar/${a.id}`}>
-            <Avatar e={{ ism: a.data.ism ?? '?', foto: a.data.foto ?? '' }} />
+            <Avatar e={{ ism: a.ism ?? '?', foto: a.foto ?? '' }} />
             <div>
-              <div className="n">{a.data.ism}{isDup(a) && <span className="dup" title="Bir xil telefon yoki ism bilan boshqa anketa yoki xodim bor">takror?</span>}</div>
-              <div className="r">{fmt(a.created_at)}{a.data.shaxsiy?.telefon ? ` · ${a.data.shaxsiy.telefon}` : ''}{a.data.shaxsiy?.lavozim ? ` · ${a.data.shaxsiy.lavozim}` : ''}</div>
+              <div className="n">{a.ism}{isDup(a) && <span className="dup" title="Bir xil telefon yoki ism bilan boshqa anketa yoki xodim bor">takror?</span>}</div>
+              <div className="r">{fmt(a.created_at)}{a.telefon ? ` · ${a.telefon}` : ''}{a.lavozim ? ` · ${a.lavozim}` : ''}</div>
             </div>
             <span className={`st ${a.holat}`}>{HOLAT[a.holat]}</span>
           </Link>
@@ -67,12 +68,56 @@ export function Arizalar() {
   )
 }
 
+/** HR: chala anketa uchun bir martalik havola bloki (anketa yoki xodim uchun) */
+export function ToldirishBlock({ e, target }: { e: Employee; target: { xodim_id?: string; ariza_id?: string } }) {
+  const miss = missingKeys(e)
+  const { list, reload, remove } = useToldirishLinks(target)
+  const [link, setLink] = useState('')
+  const [copied, setCopied] = useState(false)
+  const [busy, setBusy] = useState(false)
+  if (!supabase) return null
+  const open = list.filter((l) => !l.used_at)
+  async function create() {
+    setBusy(true)
+    try { const t = await createToldirishLink(target, miss); setLink(linkTo(`/t/${t}`)); await reload() } catch (ex) { alert(String((ex as Error).message ?? ex)) } finally { setBusy(false) }
+  }
+  async function copy(l: string) { setCopied(await copyText(l)); setTimeout(() => setCopied(false), 2000) }
+  return (
+    <div className={`panel toldirish${miss.length ? '' : ' ok'}`}>
+      <h3>Chala joylar{miss.length ? ` — ${miss.length} ta to'ldirilmagan` : ' — hammasi to’ldirilgan ✓'}</h3>
+      {miss.length > 0 && (
+        <>
+          <div className="note" style={{ marginBottom: 8 }}>{miss.slice(0, 8).map(keyLabel).join(' · ')}{miss.length > 8 ? ` · … yana ${miss.length - 8} ta` : ''}</div>
+          <p className="note">Xodimga bir martalik havola yuboring: unda faqat shu to'ldirilmagan joylar ko'rinadi, to'ldirgach havola yopiladi va javoblar anketaga tushadi.</p>
+          {link ? (
+            <div className="link-box"><code>{link}</code><button type="button" className="btn primary" onClick={() => copy(link)}>{copied ? 'Nusxalandi ✓' : 'Nusxalash'}</button></div>
+          ) : (
+            <button type="button" className="btn primary" onClick={create} disabled={busy}>{busy ? '…' : "🔗 Chala joylar uchun havola yaratish"}</button>
+          )}
+          {open.length > 0 && !link && (
+            <div className="list" style={{ marginTop: 8 }}>
+              {open.map((l) => (
+                <div className="invite" key={l.token}>
+                  <div className="grow"><div className="n">Ochiq havola · {l.maydonlar.length} ta maydon</div><div className="r">{fmt(l.created_at)}</div></div>
+                  <button type="button" className="btn" onClick={() => copy(linkTo(`/t/${l.token}`))}>Nusxalash</button>
+                  <button type="button" className="icon-btn" title="Bekor qilish" onClick={() => remove(l.token)}>✕</button>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  )
+}
+
 /** HR: bitta anketani ko'rish, tahrirlash va qabul qilish */
 export function ArizaView() {
   const { id = '' } = useParams()
   const nav = useNavigate()
   const { enabled, session, isAdmin, loading: authLoading } = useAuth()
-  const { list, loading, setHolat, updateData, remove } = useArizalar()
+  const { ariza: a, loading, error, setHolat, updateData, remove } = useAriza(id)
+  const files = useFayllar('ariza_fayllar', id)
   const { data, managers, byId, allIds, addEmployee, deptOf } = useOrg()
   const [bolim, setBolim] = useState(data.bolimlar.some((b) => b.id === SINOV_BOLIM) ? SINOV_BOLIM : (data.bolimlar[0]?.id ?? ''))
   const [lavozim, setLavozim] = useState('')
@@ -82,29 +127,26 @@ export function ArizaView() {
   const [saveMsg, setSaveMsg] = useState('')
   const [lavozimTouched, setLavozimTouched] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
-  const a = list.find((x) => x.id === id)
   useEffect(() => {
     if (!bolim && data.bolimlar.length) setBolim(data.bolimlar.some((b) => b.id === SINOV_BOLIM) ? SINOV_BOLIM : data.bolimlar[0].id)
     if (!rahbar && data.ceoId && byId[data.ceoId]) setRahbar(data.ceoId)
   }, [data.bolimlar, data.ceoId, byId, bolim, rahbar])
-  // Lavozim avtomatik: anketada xodim yozgan "xohlagan lavozim" (HR o'zgartirishi mumkin)
   useEffect(() => {
     const want = a?.data.shaxsiy?.lavozim ?? ''
     if (!lavozimTouched && want && !lavozim) setLavozim(want)
   }, [a, lavozim, lavozimTouched])
   if (enabled && authLoading) return <div className="center"><div className="spinner" /> Yuklanmoqda…</div>
   if (enabled && (!session || !isAdmin)) return <Navigate to="/" replace />
-  if (loading && !a) return <div className="center"><div className="spinner" /> Yuklanmoqda…</div>
-  if (!a) return <Navigate to="/arizalar" replace />
+  if (loading) return <div className="center"><div className="spinner" /> Anketa yuklanmoqda…</div>
+  if (!a) return <div className="login"><h1>Anketa topilmadi</h1><p className="sub">{error ?? "O'chirilgan bo'lishi mumkin."}</p><Link className="btn" to="/arizalar">← Anketalar</Link></div>
   const e = emptyEmployee({ ...a.data, id: 'ariza' })
   const xodim = a.xodim_id ? byId[a.xodim_id] : undefined
 
-  /** HR anketa bo'limini o'zgartiradi — bazadagi anketaga yoziladi */
   const save = (fn: (x: Employee) => Employee) => {
     const next = fn(e)
     const { id: _id, ...clean } = next
     setSaveMsg('Saqlanmoqda…')
-    updateData(a.id, clean).then(() => { setSaveMsg('Saqlandi ✓'); setTimeout(() => setSaveMsg(''), 2000) }).catch((ex) => setSaveMsg('Xato: ' + String((ex as Error).message ?? ex)))
+    updateData(clean).then(() => { setSaveMsg('Saqlandi ✓'); setTimeout(() => setSaveMsg(''), 2000) }).catch((ex) => setSaveMsg('Xato: ' + String((ex as Error).message ?? ex)))
   }
   async function onPhoto(f: File | undefined) {
     if (!f) return
@@ -122,17 +164,18 @@ export function ArizaView() {
         sinov_boshlandi: bolim === SINOV_BOLIM ? new Date().toISOString().slice(0, 10) : undefined })
       emp.shaxsiy.lavozim = lavozim.trim()
       addEmployee(emp)
-      await setHolat(a.id, 'qabul', { xodim_id: xid })
+      await copyArizaFilesToXodim(a.id, xid)
+      await setHolat('qabul', { xodim_id: xid })
       nav(`/x/${xid}`)
     } catch (ex) { setErr(String((ex as Error).message ?? ex)) } finally { setBusy(false) }
   }
   async function reject() {
     if (!a || !confirm('Anketa rad etilsinmi?')) return
-    try { await setHolat(a.id, 'rad') } catch (ex) { alert(String(ex)) }
+    try { await setHolat('rad') } catch (ex) { alert(String(ex)) }
   }
   async function del() {
     if (!a || !confirm("Anketa butunlay o'chirilsinmi?")) return
-    try { await remove(a.id); nav('/arizalar') } catch (ex) { alert(String(ex)) }
+    try { await remove(); nav('/arizalar') } catch (ex) { alert(String(ex)) }
   }
 
   return (
@@ -161,7 +204,6 @@ export function ArizaView() {
             <div className="fact" key={k}><div className="k">{k}</div><div className="v">{v || <span style={{ color: 'var(--muted)' }}>—</span>}</div></div>
           ))}
         </div>
-        {!e.foto && <div className="subs"><span className="note">Rasm yo'q — avatarni bosib yuklashingiz mumkin.</span></div>}
       </div>
 
       {a.holat === 'yangi' && supabase && (
@@ -187,6 +229,13 @@ export function ArizaView() {
           </div>
         </form>
       )}
+
+      {a.holat !== 'qabul' && <ToldirishBlock e={e} target={{ ariza_id: a.id }} />}
+
+      <details className="sec" open>
+        <summary><span className="num">📎</span><span className="tt">Pasport va qo'shimcha rasmlar</span><span className="cnt">{files.list.length} ta fayl</span></summary>
+        <div className="qa"><FilesPanel files={files.list} loading={files.loading} canEdit onUpload={files.upload} onDelete={(f) => files.remove(f.id)} /></div>
+      </details>
 
       <p className="note no-print">Anketadagi har bir bo'limni "Tahrirlash" orqali to'g'rilashingiz mumkin — o'zgarishlar anketaga yoziladi{a.holat === 'qabul' ? ' (tuzilmadagi xodim anketasini uning sahifasida o’zgartiring)' : ', qabul qilinganda xodimga ko’chadi'}.</p>
       <Anketa e={e} mode="admin" save={save} />

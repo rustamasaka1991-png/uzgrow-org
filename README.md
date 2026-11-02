@@ -116,3 +116,12 @@ Jadvallar: `bolimlar`, `xodimlar` (`token` — shaxsiy havola), `sozlamalar`, `a
 - **Xodim** o'z havolasi orqali 08 "Baholash"dan tashqari hamma bo'limni (09 ham) o'zgartiradi.
 - **Guruh** maydoni ro'yxat: mavjud guruhlardan tanlash yoki "+ Yangi guruh…".
 - **Ilova (PWA)**: saytda "⬇ Ilovani o'rnatish" tugmasi (Chrome/Edge, Android). Kompyuterda ish stolida ikonka bilan alohida oynada ochiladi; iPhone'da Safari → Ulashish → "Uy ekraniga qo'shish". `vite-plugin-pwa`, ikonkalar `public/` da.
+
+## 2026-11-02 yangiliklari
+
+- **Anketa**: rasm va pasport (old/orqa) **majburiy**, 5 tagacha qo'shimcha rasm. Fayllar alohida jadvallarda (`ariza_fayllar`, `xodim_fayllar`) — faqat anketa/xodim ochilganda yuklanadi, ro'yxatlar tez ochiladi. Qabul qilinganda fayllar xodimga ko'chadi.
+- **HR va xodim** pasport/rasmlarni keyin ham yuklaydi va almashtiradi (profil va shaxsiy havola sahifasida "📎 Pasport va qo'shimcha rasmlar").
+- **Chala joylar havolasi**: xodim yoki anketa sahifasida "Chala joylar" bloki to'ldirilmagan savollarni ko'rsatadi; HR **bir martalik havola** yaratadi (`/#/t/<token>`) — unda faqat shu savollar ko'rinadi, to'ldirilgach havola yopiladi, javoblar anketaga tushadi.
+- **Tezlik**: anketalar ro'yxati faqat ism/telefon/lavozim/rasm ustunlarini yuklaydi; to'liq anketa ochilganda yuklanadi.
+- **Xavfsiz boshlanish**: baza bo'sh ko'rinsa ham boshlang'ich xodimlar avtomatik yuklanmaydi (faqat ☰ Menyu → "Boshlang'ich holatga qaytarish").
+- Xodim sahifasida "← Orqaga" tugmasi.

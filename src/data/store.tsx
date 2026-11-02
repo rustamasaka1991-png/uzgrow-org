@@ -236,13 +236,9 @@ export function OrgProvider({ children }: { children: ReactNode }) {
         const err = b.error ?? x.error ?? s.error
         if (err) throw new Error(err.message)
         if (!alive) return
-        if ((b.data?.length ?? 0) + (x.data?.length ?? 0) === 0) {
-          const cur = normalize(SEED)
-          setAll(cur)
-          enqueue(diffOps(EMPTY(), cur))
-        } else {
-          applyRemote(b.data as Row[], x.data as Row[], s.data as SettingRow[])
-        }
+        // Baza bo'sh bo'lsa ham hech narsa avtomatik yuklanmaydi (boshlang'ich ma'lumot faqat
+        // menyudagi "Boshlang'ich holatga qaytarish" orqali) — aks holda xodimlar "o'zidan o'zi" paydo bo'lardi
+        applyRemote(b.data as Row[], x.data as Row[], s.data as SettingRow[])
         loaded.current = true
         if (!queue.current.size) { setSync('online'); setSyncError(null) }
       } catch (e) {

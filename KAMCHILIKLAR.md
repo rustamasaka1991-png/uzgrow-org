@@ -58,6 +58,17 @@ To'liq tekshiruv (2026-10-26): ochiq va admin rejimda 15 ta sahifa ochildi — k
 | ✅ | Admin sahifasini (Anketalar, Hisobot, Boshqaruv) to'g'ridan-to'g'ri ochganda yoki yangilaganda sessiya tekshirilguncha bosh sahifaga qaytarib yuborardi | Yuklanish ko'rsatiladi, keyin sahifa ochiladi |
 | ✅ | Xodim yoki bo'lim sahifasini to'g'ridan-to'g'ri ochganda (havola orqali) ma'lumot yuklanmasdan "ulangan" holati qo'yilib, sahifa bosh sahifaga qaytardi | Holat faqat ma'lumot yuklangach "ulangan" bo'ladi |
 
+**2026-11-02 qo'shilganlar (tekshirilgan):**
+
+| | Edi | Endi |
+|---|---|---|
+| ✅ | Baza bo'sh ko'rinsa boshlang'ich 24 xodim o'zidan o'zi qayta yuklanardi | Avtomatik yuklash olib tashlandi (faqat menyudagi qaytarish) |
+| ✅ | Anketalar ro'yxati hamma javob va rasmlarni yuklab sekin ochilardi | Faqat yengil ustunlar; to'liq anketa ochilganda yuklanadi |
+| ✅ | Rasm ixtiyoriy edi, pasport yo'q edi | Rasm va pasport (old/orqa) majburiy, 5 tagacha qo'shimcha rasm; fayllar alohida jadvalda, kerak bo'lganda yuklanadi |
+| ✅ | HR/xodim pasport yuklay olmas edi | Profil va shaxsiy havolada "📎" bo'limi: yuklash, almashtirish, o'chirish, kattalashtirib ko'rish |
+| ✅ | Chala anketa uchun yechim yo'q edi | "Chala joylar" bloki + bir martalik havola: faqat bo'sh savollar ko'rinadi, to'ldirilgach yopiladi |
+| ✅ | Xodim sahifasida orqaga tugmasi yo'q edi | "← Orqaga" (bir qadam) |
+
 Qolgan bandlar (men qila olmaydiganlar yoki alohida qaror talab qiladiganlar) pastda.
 
 ---

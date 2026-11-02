@@ -25,6 +25,33 @@ export function completeness(e: Employee) {
   return Math.round((f / t) * 100)
 }
 
+/** Anketaning to'ldirilmagan (xodim to'ldirishi kerak bo'lgan) maydonlari: "shaxsiy.telefon", "talim", "foto"… */
+export function missingKeys(e: Employee): string[] {
+  const m: string[] = []
+  if (!filled(e.foto)) m.push('foto')
+  for (const k of SECTION_ORDER) {
+    const s = ANKETA[k]
+    if (s.turi === 'qa' && k !== 'rivojlanish' && k !== 'baholash') {
+      for (const [q] of s.savollar) if (!filled(e[k as QAKey][q])) m.push(`${k}.${q}`)
+    } else if (s.turi === 'qa' && k === 'rivojlanish') {
+      for (const [q] of s.savollar) if (!filled(e.rivojlanish[q])) m.push(`rivojlanish.${q}`)
+    } else if (s.turi === 'vaqt') {
+      if (!e[k as TimeKey].some((r) => r.yil?.trim() && r.joy?.trim())) m.push(k)
+    }
+  }
+  return m
+}
+/** Maydon kaliti → odam o'qiydigan nom */
+export function keyLabel(key: string): string {
+  if (key === 'foto') return 'Rasm'
+  const [sec, q] = key.split('.')
+  const s = ANKETA[sec as keyof typeof ANKETA]
+  if (!s) return key
+  if (!q) return s.nom
+  if (s.turi === 'qa') return `${s.nom}: ${s.savollar.find(([k]) => k === q)?.[1] ?? q}`
+  return key
+}
+
 export function score(e: Employee) {
   const s = ANKETA.baholash
   if (s.turi !== 'ball') return { total: 0, any: false }
@@ -65,7 +92,7 @@ export function today() {
 }
 
 /** Rasmni 512px gacha kichraytirib, JPEG data-URL qaytaradi (localStorage'ga sig'ishi uchun). */
-export function fileToDataUrl(file: File, max = 512): Promise<string> {
+export function fileToDataUrl(file: File, max = 512, quality = 0.85): Promise<string> {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file)
     const img = new Image()
@@ -78,7 +105,7 @@ export function fileToDataUrl(file: File, max = 512): Promise<string> {
       if (!ctx) { URL.revokeObjectURL(url); reject(new Error('canvas')); return }
       ctx.drawImage(img, 0, 0, w, h)
       URL.revokeObjectURL(url)
-      resolve(c.toDataURL('image/jpeg', 0.85))
+      resolve(c.toDataURL('image/jpeg', quality))
     }
     img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Rasm o’qilmadi')) }
     img.src = url

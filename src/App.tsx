@@ -24,6 +24,7 @@ import { MyAnketa } from './pages/MyAnketa'
 import { Overview } from './pages/Overview'
 import { Profile } from './pages/Profile'
 import { SearchView } from './pages/SearchView'
+import { Toldirish } from './pages/Toldirish'
 
 type Theme = 'auto' | 'light' | 'dark'
 const THEME_KEY = 'uzgrow-org:theme'
@@ -201,7 +202,7 @@ function Shell() {
   const loc = useLocation()
   const { enabled, session, isAdmin } = useAuth()
   const p = loc.pathname
-  const miniLabel = p === '/anketa' ? 'Xodim anketasi' : p.startsWith('/a/') ? 'Mening anketam' : p === '/login' ? 'Kirish' : null
+  const miniLabel = p === '/anketa' ? 'Xodim anketasi' : p.startsWith('/a/') ? 'Mening anketam' : p.startsWith('/t/') ? "Anketani to'ldirish" : p === '/login' ? 'Kirish' : null
   const admin = !enabled || (!!session && isAdmin)
   return (
     <>
@@ -212,6 +213,7 @@ function Shell() {
           <Route path="/login" element={<Login />} />
           <Route path="/anketa" element={<AnketaForm />} />
           <Route path="/a/:token" element={<MyAnketa />} />
+          <Route path="/t/:token" element={<Toldirish />} />
           <Route path="/arizalar" element={<Arizalar />} />
           <Route path="/arizalar/:id" element={<ArizaView />} />
           <Route path="/boshqaruv" element={<Boshqaruv />} />
