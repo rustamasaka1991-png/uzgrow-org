@@ -10,7 +10,7 @@ import { ToldirishBlock } from './Arizalar'
 import { copyText } from '../data/invites'
 import { useOrg } from '../data/store'
 import { api, linkTo, supabase, type Fayl } from '../data/supabase'
-import { completeness, fileToDataUrl, filled } from '../lib/util'
+import { completeness, filled, fotoVaKichik } from '../lib/util'
 
 export function Profile() {
   const { id = '' } = useParams()
@@ -49,7 +49,7 @@ export function Profile() {
 
   async function onPhoto(f: File | undefined) {
     if (!f) return
-    try { const foto = await fileToDataUrl(f); updateEmployee(e!.id, (x) => ({ ...x, foto })) } catch (err) { alert(String(err)) }
+    try { const r = await fotoVaKichik(f); updateEmployee(e!.id, (x) => ({ ...x, ...r })) } catch (err) { alert(String(err)) }
   }
   function remove() {
     const msg = subs.length

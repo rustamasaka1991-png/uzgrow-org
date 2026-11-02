@@ -4,7 +4,7 @@ import { FilesPanel } from '../components/FilesPanel'
 import { ANKETA, HOLATLAR, emptyEmployee } from '../data/seed'
 import { api, type Fayl, type FaylTuri } from '../data/supabase'
 import type { Employee, QAKey, Taklif, TimeKey, Timeline } from '../data/types'
-import { RASM_SONI, fileToDataUrl, missingFileKeys, today } from '../lib/util'
+import { RASM_SONI, fotoVaKichik, missingFileKeys, today } from '../lib/util'
 
 /** Ochiq anketa: bitta doimiy havola, HR ga yuboriladi. Hamma savol, rasm va pasport majburiy. */
 const QA_KEYS: QAKey[] = ['shaxsiy', 'oila', 'shaxsiyat', 'hobbi', 'maqsad', 'rivojlanish']
@@ -49,7 +49,7 @@ export function AnketaForm() {
 
   async function onFile(f: File | undefined) {
     if (!f) return
-    try { const foto = await fileToDataUrl(f); setE((x) => ({ ...x, foto })); unmiss('foto') } catch (ex) { setErr(String(ex)) }
+    try { const r = await fotoVaKichik(f); setE((x) => ({ ...x, ...r })); unmiss('foto') } catch (ex) { setErr(String(ex)) }
   }
   const addFile = (turi: FaylTuri, idx: number, data: string) => {
     setFiles((fs) => [...fs.filter((x) => !(x.turi === turi && x.idx === idx)), { id: Date.now() + idx, turi, idx, data }])
@@ -94,7 +94,7 @@ export function AnketaForm() {
       const clean = (k: TimeKey) => e[k].map((r) => ({ yil: r.yil.trim(), joy: r.joy.trim(), ...(r.izoh?.trim() ? { izoh: r.izoh.trim() } : {}) })).filter((r) => r.yil || r.joy)
       const takliflar = e.takliflar.filter((t) => t.muammo.trim())
       const r = await api.submitAnketa({
-        ism: e.shaxsiy.fish.trim(), foto: e.foto, shaxsiy: e.shaxsiy, talim: clean('talim'), mehnat: clean('mehnat'),
+        ism: e.shaxsiy.fish.trim(), foto: e.foto, foto_kichik: e.foto_kichik, shaxsiy: e.shaxsiy, talim: clean('talim'), mehnat: clean('mehnat'),
         oila: e.oila, shaxsiyat: e.shaxsiyat, hobbi: e.hobbi, maqsad: e.maqsad, rivojlanish: e.rivojlanish, takliflar, website: hp,
       }, files.map((f) => ({ turi: f.turi, idx: f.idx, data: f.data })))
       if (!r.ok) { setErr(r.xato); return }

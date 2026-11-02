@@ -127,6 +127,27 @@ export function fileToDataUrl(file: File, max = 512, quality = 0.85): Promise<st
   })
 }
 
+/** Data-URL dan 96px kichik nusxa (ro'yxat/tuzilma uchun, ~3 KB). */
+export function makeThumb(dataUrl: string, size = 96): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => {
+      const c = document.createElement('canvas'); c.width = size; c.height = size
+      const ctx = c.getContext('2d'); if (!ctx) { reject(new Error('canvas')); return }
+      const s = Math.min(img.width, img.height), sx = (img.width - s) / 2, sy = (img.height - s) / 2
+      ctx.drawImage(img, sx, sy, s, s, 0, 0, size, size)
+      resolve(c.toDataURL('image/jpeg', 0.75))
+    }
+    img.onerror = () => reject(new Error('Rasm o’qilmadi'))
+    img.src = dataUrl
+  })
+}
+/** Avatar fayli → { foto (512px), foto_kichik (96px) } */
+export async function fotoVaKichik(file: File): Promise<{ foto: string; foto_kichik: string }> {
+  const foto = await fileToDataUrl(file)
+  return { foto, foto_kichik: await makeThumb(foto) }
+}
+
 export function download(name: string, text: string, type = 'application/json') {
   const a = document.createElement('a')
   a.href = URL.createObjectURL(new Blob([text], { type }))

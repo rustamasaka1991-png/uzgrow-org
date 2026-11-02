@@ -30,6 +30,8 @@ export type Employee = {
   ism: string
   lavozim: string
   foto: string
+  /** 96px kichik nusxa — ro'yxat va tuzilma uchun (tezlik) */
+  foto_kichik?: string
   guruh: string
   shaxsiy: Record<string, string>
   talim: Timeline[]

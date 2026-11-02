@@ -11,7 +11,7 @@ import { ANKETA, SINOV_BOLIM, emptyEmployee } from '../data/seed'
 import { useOrg } from '../data/store'
 import { linkTo, supabase, type ArizaHolat, type ArizaLite } from '../data/supabase'
 import type { Employee } from '../data/types'
-import { RASM_SONI, fileToDataUrl, keyLabel, missingKeys, norm, slug, uniqueId } from '../lib/util'
+import { RASM_SONI, fotoVaKichik, keyLabel, missingKeys, norm, slug, uniqueId } from '../lib/util'
 
 const HOLAT: Record<ArizaHolat, string> = { yangi: 'Yangi', qabul: 'Qabul qilindi', rad: 'Rad etildi' }
 const fmt = (s: string) => new Date(s).toLocaleString('uz', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
@@ -195,7 +195,7 @@ export function ArizaView() {
   }
   async function onPhoto(f: File | undefined) {
     if (!f) return
-    try { const foto = await fileToDataUrl(f); save((x) => ({ ...x, foto })) } catch (ex) { alert(String(ex)) }
+    try { const r = await fotoVaKichik(f); save((x) => ({ ...x, ...r })) } catch (ex) { alert(String(ex)) }
   }
   async function accept(ev: FormEvent) {
     ev.preventDefault()

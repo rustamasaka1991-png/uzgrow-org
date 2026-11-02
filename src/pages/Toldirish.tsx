@@ -5,7 +5,7 @@ import { FilesPanel } from '../components/FilesPanel'
 import { ANKETA } from '../data/seed'
 import { api, type Fayl, type FaylTuri, type ToldirishInfo } from '../data/supabase'
 import type { Timeline } from '../data/types'
-import { RASM_SONI, fileToDataUrl, keyLabel } from '../lib/util'
+import { RASM_SONI, fotoVaKichik, keyLabel } from '../lib/util'
 
 const FILE_KEYS = new Set(['pasport_old', 'pasport_orqa', 'rasmlar'])
 
@@ -97,6 +97,7 @@ export function Toldirish() {
         else if (k === 'talim' || k === 'mehnat') out[k] = (v as Timeline[]).map((r) => ({ yil: r.yil.trim(), joy: r.joy.trim(), ...(r.izoh?.trim() ? { izoh: r.izoh.trim() } : {}) })).filter((r) => r.yil || r.joy)
         else out[k] = v
       }
+      if (vals.foto_kichik) out.foto_kichik = vals.foto_kichik
       const r = await api.toldirishYuborish(token, out)
       if (!r.ok) { setErr(r.xato); return }
       setDone(true); window.scrollTo(0, 0)
@@ -120,7 +121,7 @@ export function Toldirish() {
               if (k === 'foto') return (
                 <div className="photo-row" key={k}>
                   <Avatar e={{ ism: info.ok ? info.ism : '?', foto: String(vals.foto ?? '') }} size="lg" />
-                  <label className="btn primary">Rasm yuklash *<input type="file" accept="image/*" hidden onChange={async (e) => { const f = e.target.files?.[0]; if (!f) return; try { const d = await fileToDataUrl(f); setVals((v) => ({ ...v, foto: d })) } catch (ex) { setErr(String(ex)) } }} /></label>
+                  <label className="btn primary">Rasm yuklash *<input type="file" accept="image/*" hidden onChange={async (e) => { const f = e.target.files?.[0]; if (!f) return; try { const r = await fotoVaKichik(f); setVals((v) => ({ ...v, ...r })) } catch (ex) { setErr(String(ex)) } }} /></label>
                 </div>
               )
               if (k === 'talim' || k === 'mehnat') return (

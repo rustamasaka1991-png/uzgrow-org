@@ -2,7 +2,7 @@ import { useMemo, useState, type FormEvent } from 'react'
 import { useOrg } from '../data/store'
 import { emptyEmployee } from '../data/seed'
 import type { Employee } from '../data/types'
-import { fileToDataUrl, slug, uniqueId } from '../lib/util'
+import { fotoVaKichik, slug, uniqueId } from '../lib/util'
 import { Avatar } from './Avatar'
 import { GroupSelect } from './GroupSelect'
 import { Modal } from './Modal'
@@ -23,6 +23,7 @@ export function EmployeeForm({ initial, defaultDept, onClose, onSaved }: Props) 
   })
   const [guruh, setGuruh] = useState(initial?.guruh ?? '')
   const [foto, setFoto] = useState(initial?.foto ?? '')
+  const [fotoK, setFotoK] = useState(initial?.foto_kichik ?? '')
   const [rahbarBelgisi, setRahbarBelgisi] = useState(!!initial?.rahbar_belgisi)
   const [err, setErr] = useState('')
 
@@ -49,7 +50,7 @@ export function EmployeeForm({ initial, defaultDept, onClose, onSaved }: Props) 
 
   async function onFile(f: File | undefined) {
     if (!f) return
-    try { setFoto(await fileToDataUrl(f)) } catch (e) { setErr(String(e)) }
+    try { const r = await fotoVaKichik(f); setFoto(r.foto); setFotoK(r.foto_kichik) } catch (e) { setErr(String(e)) }
   }
 
   function submit(ev: FormEvent) {
@@ -59,13 +60,13 @@ export function EmployeeForm({ initial, defaultDept, onClose, onSaved }: Props) 
     if (!bolim) { setErr("Bo'lim tanlanmagan"); return }
     const sinovSana = (old?: string) => (bolim === 'sinov' ? (old || new Date().toISOString().slice(0, 10)) : old)
     if (editing && initial) {
-      updateEmployee(initial.id, (e) => ({ ...e, ism: ism.trim(), lavozim: lavozim.trim(), bolim, rahbar, guruh: guruh.trim(), foto,
+      updateEmployee(initial.id, (e) => ({ ...e, ism: ism.trim(), lavozim: lavozim.trim(), bolim, rahbar, guruh: guruh.trim(), foto, foto_kichik: fotoK || undefined,
         rahbar_belgisi: rahbarBelgisi || undefined, sinov_boshlandi: sinovSana(e.bolim === 'sinov' ? e.sinov_boshlandi : undefined),
         shaxsiy: { ...e.shaxsiy, lavozim: e.shaxsiy.lavozim === e.lavozim || !e.shaxsiy.lavozim ? lavozim.trim() : e.shaxsiy.lavozim } }))
       onSaved?.(initial.id)
     } else {
       const id = uniqueId(slug(ism), new Set(allIds))
-      const e = emptyEmployee({ id, ism: ism.trim(), lavozim: lavozim.trim(), bolim, rahbar, guruh: guruh.trim(), foto, rahbar_belgisi: rahbarBelgisi || undefined, sinov_boshlandi: sinovSana() })
+      const e = emptyEmployee({ id, ism: ism.trim(), lavozim: lavozim.trim(), bolim, rahbar, guruh: guruh.trim(), foto, foto_kichik: fotoK || undefined, rahbar_belgisi: rahbarBelgisi || undefined, sinov_boshlandi: sinovSana() })
       e.shaxsiy.lavozim = lavozim.trim()
       addEmployee(e)
       onSaved?.(id)
@@ -83,7 +84,7 @@ export function EmployeeForm({ initial, defaultDept, onClose, onSaved }: Props) 
               Rasm yuklash
               <input type="file" accept="image/*" hidden onChange={(e) => onFile(e.target.files?.[0])} />
             </label>
-            {foto && <button type="button" className="btn ghost" onClick={() => setFoto('')}>Rasmni olib tashlash</button>}
+            {foto && <button type="button" className="btn ghost" onClick={() => { setFoto(''); setFotoK('') }}>Rasmni olib tashlash</button>}
           </div>
         </div>
         <label className="field"><span>Ism-sharif *</span><input value={ism} onChange={(e) => setIsm(e.target.value)} autoFocus placeholder="Masalan: Karimov Jasur" /></label>

@@ -7,7 +7,7 @@ import { copyText } from '../data/invites'
 import { emptyEmployee } from '../data/seed'
 import { api, linkTo, type Fayl, type FaylTuri, type MyInfo } from '../data/supabase'
 import type { Employee } from '../data/types'
-import { completeness, fileToDataUrl } from '../lib/util'
+import { completeness, fotoVaKichik } from '../lib/util'
 
 /** Xodim o'z shaxsiy havolasi orqali faqat o'z anketasini ko'radi va to'ldiradi. */
 export function MyAnketa() {
@@ -48,7 +48,7 @@ export function MyAnketa() {
   }
   async function onPhoto(f: File | undefined) {
     if (!f) return
-    try { const foto = await fileToDataUrl(f); save((x) => ({ ...x, foto })) } catch (ex) { alert(String(ex)) }
+    try { const r = await fotoVaKichik(f); save((x) => ({ ...x, ...r })) } catch (ex) { alert(String(ex)) }
   }
   async function upload(turi: FaylTuri, idx: number, data: string) {
     const r = await api.myFileSave(token, turi, idx, data)

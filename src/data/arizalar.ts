@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { supabase, type Ariza, type ArizaLite } from './supabase'
 
 /** Ro'yxat uchun faqat yengil ustunlar — javoblar va katta rasmlar yuklanmaydi (tezlik) */
-const LITE = 'id,holat,xodim_id,created_at,ism:data->>ism,telefon:data->shaxsiy->>telefon,lavozim:data->shaxsiy->>lavozim,foto:data->>foto'
+const LITE = 'id,holat,xodim_id,created_at,ism:data->>ism,telefon:data->shaxsiy->>telefon,lavozim:data->shaxsiy->>lavozim,foto:data->>foto_kichik'
 
 /** To'ldirilgan anketalar ro'yxati (faqat admin). Realtime bilan yangilanadi. */
 export function useArizalar() {
