@@ -99,6 +99,7 @@ Qolgan bandlar (men qila olmaydiganlar yoki alohida qaror talab qiladiganlar) pa
 - 🟢 Login sahifasida "Ro'yxatdan o'tish" tugmasi bor; u faqat ruxsat ro'yxatidagi emaillar uchun ishlaydi (boshqalarga xato beradi), lekin chalg'itishi mumkin.
 
 ### 2.2 Ochiq ma'lumotlar
+- 🔴 **2026-11-02 qaror (ta'sischi):** loginsiz kirgan har kim xodim anketasini to'liq ko'radi — telefon, manzil, oila, baholash, qo'shimcha rasmlar (pasport rasmlari emas). Bu internetdagi istalgan odam uchun ham ochiq. Agar bu kerak bo'lmay qolsa, bir qatorlik o'zgarish bilan yana faqat tuzilma ko'rsatiladigan qilish mumkin.
 - 🟡 **Tuzilma hammaga ochiq.** Havolani bilgan har kim (internetdagi istalgan odam) barcha xodimlarning ism, lavozim, rasm, bo'lim va rahbarini ko'radi. Qidiruv tizimlariga `noindex` qo'yildi, lekin bu havola tarqalsa yordam bermaydi. Agar bu kerak bo'lmasa: umumiy "ko'rish paroli" qo'shish mumkin (≈2 soat) yoki ochiq rejimni butunlay yopish.
 - 🟡 **Rasmlar ochiq rejimda hammaga yuboriladi.** 100 ta xodim bo'lsa sahifa 1–3 MB bo'ladi (har rasm 512px, ≈10–30 KB). Telefonda sekin ochiladi. Yechim: rasmlarni Supabase Storage'ga ko'chirish (≈1 kun).
 - 🟢 Ochiq anketa sahifasida (`/#/anketa`) kompaniya nomi ko'rinadi — bu normal, lekin forma hammaga ochiq bo'lgani uchun begonalar ham "anketa" yuborishi mumkin (pastga qarang).

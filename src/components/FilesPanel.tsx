@@ -21,10 +21,12 @@ type Props = {
   requiredGallery?: boolean
   /** Faqat ma'lum pasport tomonlari majburiy (chala havola) */
   requiredSides?: { old?: boolean; orqa?: boolean }
+  /** Pasport bo'limini ko'rsatmaslik (ochiq rejim) */
+  hidePassport?: boolean
 }
 
 /** Pasport (old/orqa) va 5 tagacha qo'shimcha rasm */
-export function FilesPanel({ files, canEdit, onUpload, onDelete, loading, requiredPassport, requiredGallery, requiredSides }: Props) {
+export function FilesPanel({ files, canEdit, onUpload, onDelete, loading, requiredPassport, requiredGallery, requiredSides, hidePassport }: Props) {
   const [big, setBig] = useState<Fayl | null>(null)
   /** Shu slot majburiymi */
   const isReq = (turi: FaylTuri) =>
@@ -66,13 +68,15 @@ export function FilesPanel({ files, canEdit, onUpload, onDelete, loading, requir
     <div className="files">
       {loading ? <div className="note">Fayllar yuklanmoqda…</div> : (
         <>
-          <div className="fgroup">
-            <div className="ftitle">Pasport</div>
-            <div className="frow">
-              <Slot turi="pasport_old" idx={0} label={FAYL_NOMI.pasport_old} />
-              <Slot turi="pasport_orqa" idx={0} label={FAYL_NOMI.pasport_orqa} />
+          {!hidePassport && (
+            <div className="fgroup">
+              <div className="ftitle">Pasport</div>
+              <div className="frow">
+                <Slot turi="pasport_old" idx={0} label={FAYL_NOMI.pasport_old} />
+                <Slot turi="pasport_orqa" idx={0} label={FAYL_NOMI.pasport_orqa} />
+              </div>
             </div>
-          </div>
+          )}
           <div className="fgroup">
             <div className="ftitle">Qo'shimcha rasmlar ({gallery.length}/{MAX_RASM}){requiredGallery ? ' — 5 tasi ham majburiy *' : ''}</div>
             <div className="frow">

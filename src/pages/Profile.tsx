@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { Anketa } from '../components/Anketa'
 import { Avatar } from '../components/Avatar'
@@ -9,7 +9,7 @@ import { useFayllar } from '../data/fayllar'
 import { ToldirishBlock } from './Arizalar'
 import { copyText } from '../data/invites'
 import { useOrg } from '../data/store'
-import { linkTo, supabase } from '../data/supabase'
+import { api, linkTo, supabase, type Fayl } from '../data/supabase'
 import { completeness, fileToDataUrl, filled } from '../lib/util'
 
 export function Profile() {
@@ -20,6 +20,14 @@ export function Profile() {
   const [copied, setCopied] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
   const files = useFayllar('xodim_fayllar', canEdit ? id : undefined)
+  // Ochiq rejim: qo'shimcha rasmlar (pasportsiz) alohida RPC orqali
+  const [pubFiles, setPubFiles] = useState<Fayl[]>([])
+  useEffect(() => {
+    if (canEdit || !supabase || !id) { setPubFiles([]); return }
+    let alive = true
+    api.publicPhotos(id).then((f) => { if (alive) setPubFiles(f) }).catch(() => { if (alive) setPubFiles([]) })
+    return () => { alive = false }
+  }, [canEdit, id])
   const e = byId[id]
   if (!e && (sync === 'loading' || sync === 'saving')) return <div className="center"><div className="spinner" /> Yuklanmoqda…</div>
   if (!e) return <Navigate to="/" replace />
@@ -32,15 +40,12 @@ export function Profile() {
   const subs = kids(e.id)
   const token = tokens[e.id]
   const link = token ? linkTo(`/a/${token}`) : ''
-  const facts: [string, string | undefined, string?][] = canEdit
-    ? [
-        ['Lavozimi', sh.lavozim || e.lavozim], ["Tug'ilgan sana", sh.tugilgan], ['Telefon', sh.telefon], ['Manzil', sh.manzil],
-        ['Oilaviy holati', sh.oilaviy], ['Bevosita rahbari', boss?.ism, boss ? `/x/${boss.id}` : undefined],
-      ]
-    : [
-        ['Lavozimi', e.lavozim], ["Bo'limi", d?.nomi ?? (e.bolim === 'rahbariyat' ? 'Rahbariyat' : undefined), d ? `/d/${d.id}` : undefined],
-        ['Guruh', e.guruh], ['Bevosita rahbari', boss?.ism, boss ? `/x/${boss.id}` : undefined],
-      ]
+  // Ta'sischi qarori (2026-11-02): anketa loginsiz ham to'liq ko'rinadi
+  const facts: [string, string | undefined, string?][] = [
+    ['Lavozimi', sh.lavozim || e.lavozim], ["Bo'limi", d?.nomi ?? (e.bolim === 'rahbariyat' ? 'Rahbariyat' : undefined), d ? `/d/${d.id}` : undefined],
+    ["Tug'ilgan sana", sh.tugilgan], ['Telefon', sh.telefon], ['Manzil', sh.manzil],
+    ['Oilaviy holati', sh.oilaviy], ['Guruh', e.guruh], ['Bevosita rahbari', boss?.ism, boss ? `/x/${boss.id}` : undefined],
+  ]
 
   async function onPhoto(f: File | undefined) {
     if (!f) return
@@ -89,19 +94,17 @@ export function Profile() {
             </>
           ) : <Avatar e={e} size="lg" />}
           <div className="who">
-            <h2>{(canEdit && sh.fish) || e.ism}</h2>
+            <h2>{sh.fish || e.ism}</h2>
             <div className="pos">{e.lavozim}{d ? ' · ' + d.nomi : e.bolim === 'rahbariyat' ? ' · Rahbariyat' : ''}{e.guruh ? ` · ${e.guruh}` : ''}</div>
           </div>
-          {canEdit && (
-            <div className="ring">
-              <svg viewBox="0 0 48 48">
-                <circle cx="24" cy="24" r="20" fill="none" stroke="var(--line)" strokeWidth="5" />
-                <circle cx="24" cy="24" r="20" fill="none" stroke={c} strokeWidth="5" strokeLinecap="round" strokeDasharray={`${(C * p) / 100} ${C}`} transform="rotate(-90 24 24)" />
-                <text x="24" y="28" textAnchor="middle" fontSize="12" fontWeight="700" fill="var(--fg)">{p}%</text>
-              </svg>
-              Anketa<br />to'ldirilgan
-            </div>
-          )}
+          <div className="ring">
+            <svg viewBox="0 0 48 48">
+              <circle cx="24" cy="24" r="20" fill="none" stroke="var(--line)" strokeWidth="5" />
+              <circle cx="24" cy="24" r="20" fill="none" stroke={c} strokeWidth="5" strokeLinecap="round" strokeDasharray={`${(C * p) / 100} ${C}`} transform="rotate(-90 24 24)" />
+              <text x="24" y="28" textAnchor="middle" fontSize="12" fontWeight="700" fill="var(--fg)">{p}%</text>
+            </svg>
+            Anketa<br />to'ldirilgan
+          </div>
         </div>
         <div className="facts">
           {facts.map(([k, v, href]) => (
@@ -142,7 +145,15 @@ export function Profile() {
       {canEdit ? (
         <Anketa e={e} mode="admin" save={(fn) => updateEmployee(e.id, fn)} />
       ) : (
-        <div className="panel empty-box">Anketa ma'lumotlari faqat HR va rahbarga ko'rinadi.</div>
+        <>
+          {pubFiles.length > 0 && (
+            <details className="sec" open>
+              <summary><span className="num">📎</span><span className="tt">Rasmlar</span><span className="cnt">{pubFiles.length} ta</span></summary>
+              <div className="qa"><FilesPanel files={pubFiles} canEdit={false} hidePassport /></div>
+            </details>
+          )}
+          <Anketa e={e} mode="view" />
+        </>
       )}
 
       {canEdit && edit && <EmployeeForm initial={e} onClose={() => setEdit(false)} />}
