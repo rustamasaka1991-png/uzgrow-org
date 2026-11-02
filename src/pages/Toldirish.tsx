@@ -48,7 +48,6 @@ export function Toldirish() {
 
   const textKeys = info.maydonlar.filter((k) => !FILE_KEYS.has(k))
   const fileKeys = info.maydonlar.filter((k) => FILE_KEYS.has(k))
-  const needPassport = fileKeys.includes('pasport_old') || fileKeys.includes('pasport_orqa')
   const needGallery = fileKeys.includes('rasmlar')
 
   const label = (k: string) => {
@@ -153,7 +152,7 @@ export function Toldirish() {
         <section className="sec">
           <summary><span className="tt">Pasport va rasmlar</span></summary>
           <div className="note">{fileKeys.map(keyLabel).join(' · ')}. Rasm bosilganda darhol saqlanadi.</div>
-          <FilesPanel files={files} canEdit onUpload={upload} onDelete={del} requiredPassport={needPassport} requiredGallery={needGallery} />
+          <FilesPanel files={files} canEdit onUpload={upload} onDelete={del} requiredSides={{ old: fileKeys.includes('pasport_old'), orqa: fileKeys.includes('pasport_orqa') }} requiredGallery={needGallery} />
         </section>
       )}
       <div className="submit">

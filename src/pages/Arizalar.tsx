@@ -69,47 +69,75 @@ export function Arizalar() {
 }
 
 /** HR: chala anketa uchun bir martalik havola bloki (anketa yoki xodim uchun) */
+/** Havolaga kiritish mumkin bo'lgan barcha maydonlar, bo'limlar bo'yicha */
+function allKeysGrouped(): { nom: string; keys: string[] }[] {
+  const out: { nom: string; keys: string[] }[] = [{ nom: 'Rasmlar va pasport', keys: ['foto', 'pasport_old', 'pasport_orqa', 'rasmlar'] }]
+  for (const sec of ['shaxsiy', 'talim', 'mehnat', 'oila', 'shaxsiyat', 'hobbi', 'maqsad', 'rivojlanish'] as const) {
+    const s = ANKETA[sec]
+    out.push({ nom: s.nom, keys: s.turi === 'qa' ? s.savollar.map(([q]) => `${sec}.${q}`) : [sec] })
+  }
+  return out
+}
+
 export function ToldirishBlock({ e, target, files = [] }: { e: Employee; target: { xodim_id?: string; ariza_id?: string }; files?: { turi: string; idx: number }[] }) {
   const miss = missingKeys(e, files)
+  const missSet = new Set(miss)
   const { list, reload, remove } = useToldirishLinks(target)
   const [link, setLink] = useState('')
   const [copied, setCopied] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [sel, setSel] = useState<Set<string>>(() => new Set(miss))
+  const [showAll, setShowAll] = useState(false)
+  const [open2, setOpen2] = useState(false)
   if (!supabase) return null
   const open = list.filter((l) => !l.used_at)
+  const rasmSoni = files.filter((f) => f.turi === 'rasm').length
+  const itemLabel = (k: string) => k === 'rasmlar' ? `Qo'shimcha rasmlar (${rasmSoni}/${RASM_SONI})` : k.includes('.') ? keyLabel(k).split(': ').slice(1).join(': ') : (k === 'talim' || k === 'mehnat') ? `${ANKETA[k].nom} — kamida bitta qator` : keyLabel(k)
+  const toggle = (k: string) => setSel((s) => { const n = new Set(s); if (n.has(k)) n.delete(k); else n.add(k); return n })
+  const toggleGroup = (keys: string[], on: boolean) => setSel((s) => { const n = new Set(s); keys.forEach((k) => (on ? n.add(k) : n.delete(k))); return n })
+  const groups = allKeysGrouped().map((g) => ({ ...g, keys: showAll ? g.keys : g.keys.filter((k) => missSet.has(k)) })).filter((g) => g.keys.length)
   async function create() {
+    if (!sel.size) return
     setBusy(true)
-    try { const t = await createToldirishLink(target, miss); setLink(linkTo(`/t/${t}`)); await reload() } catch (ex) { alert(String((ex as Error).message ?? ex)) } finally { setBusy(false) }
+    try { const t = await createToldirishLink(target, [...sel]); setLink(linkTo(`/t/${t}`)); await reload() } catch (ex) { alert(String((ex as Error).message ?? ex)) } finally { setBusy(false) }
   }
   async function copy(l: string) { setCopied(await copyText(l)); setTimeout(() => setCopied(false), 2000) }
-  // Bo'limlar bo'yicha guruhlash: nima boshidan to'ldirilishi kerak
-  const groups: { nom: string; items: string[] }[] = []
-  const rasmSoni = files.filter((f) => f.turi === 'rasm').length
-  for (const k of miss) {
-    const sec = k === 'foto' || k === 'pasport_old' || k === 'pasport_orqa' || k === 'rasmlar' ? 'Rasmlar va pasport' : (ANKETA[k.split('.')[0] as keyof typeof ANKETA]?.nom ?? k)
-    const label = k === 'rasmlar' ? `Qo'shimcha rasmlar: ${rasmSoni}/${RASM_SONI} (yana ${RASM_SONI - rasmSoni} ta kerak)` : k.includes('.') ? keyLabel(k).split(': ').slice(1).join(': ') : (k === 'talim' || k === 'mehnat') ? 'Kamida bitta qator' : keyLabel(k)
-    let g = groups.find((x) => x.nom === sec); if (!g) { g = { nom: sec, items: [] }; groups.push(g) }
-    g.items.push(label)
-  }
+  const visible = miss.length > 0 || open2 || showAll
   return (
     <div className={`panel toldirish${miss.length ? '' : ' ok'}`}>
-      <h3>Chala joylar{miss.length ? ` — ${miss.length} ta to'ldirilmagan` : ' — hammasi to’ldirilgan ✓'}</h3>
-      {miss.length > 0 && (
+      <div className="titlebar" style={{ alignItems: 'center' }}>
+        <h3 style={{ margin: 0 }}>Chala joylar{miss.length ? ` — ${miss.length} ta to'ldirilmagan` : ' — hammasi to’ldirilgan ✓'}</h3>
+        {!miss.length && !open2 && <button type="button" className="btn ghost" onClick={() => { setOpen2(true); setShowAll(true) }}>Qayta to'ldirish uchun havola…</button>}
+      </div>
+      {visible && (
         <>
-          <p className="note">Xodim quyidagilarni boshidan to'ldirishi kerak:</p>
+          <p className="note">Xodim to'ldirishi kerak bo'lgan joylarni belgilang (bo'shlari oldindan belgilangan). Havolada faqat belgilanganlar ko'rinadi.</p>
           <div className="miss-groups">
-            {groups.map((g) => (
-              <div className="miss-group" key={g.nom}>
-                <div className="miss-sec">{g.nom} <span className="note">({g.items.length})</span></div>
-                <ol>{g.items.map((it, i) => <li key={i}>{it}</li>)}</ol>
-              </div>
-            ))}
+            {groups.map((g) => {
+              const allOn = g.keys.every((k) => sel.has(k))
+              return (
+                <div className="miss-group" key={g.nom}>
+                  <label className="miss-sec check"><input type="checkbox" checked={allOn} onChange={(ev) => toggleGroup(g.keys, ev.target.checked)} /> {g.nom} <span className="note">({g.keys.filter((k) => sel.has(k)).length}/{g.keys.length})</span></label>
+                  <div className="miss-items">
+                    {g.keys.map((k) => (
+                      <label className={`check miss-item${missSet.has(k) ? ' empty' : ''}`} key={k}>
+                        <input type="checkbox" checked={sel.has(k)} onChange={() => toggle(k)} /> {itemLabel(k)}{missSet.has(k) ? <span className="tag-empty">bo'sh</span> : <span className="note"> (to'ldirilgan)</span>}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )
+            })}
           </div>
-          <p className="note">Xodimga bir martalik havola yuboring: unda faqat shu to'ldirilmagan joylar (savollar, pasport, rasmlar) ko'rinadi, to'ldirgach havola yopiladi va javoblar anketaga tushadi.</p>
+          <div className="actions" style={{ justifyContent: 'flex-start', gap: 12 }}>
+            <label className="check"><input type="checkbox" checked={showAll} onChange={(ev) => setShowAll(ev.target.checked)} /> Barcha savollarni ko'rsatish (to'ldirilganlarni ham qayta so'rash uchun)</label>
+            <span className="note">Tanlangan: <b>{sel.size}</b></span>
+          </div>
+          <p className="note">Xodimga bir martalik havola yuboring: unda faqat belgilangan joylar (savollar, pasport, rasmlar) ko'rinadi, to'ldirgach havola yopiladi va javoblar anketaga tushadi.</p>
           {link ? (
             <div className="link-box"><code>{link}</code><button type="button" className="btn primary" onClick={() => copy(link)}>{copied ? 'Nusxalandi ✓' : 'Nusxalash'}</button></div>
           ) : (
-            <button type="button" className="btn primary" onClick={create} disabled={busy}>{busy ? '…' : "🔗 Chala joylar uchun havola yaratish"}</button>
+            <button type="button" className="btn primary" onClick={create} disabled={busy || !sel.size} title={sel.size ? '' : 'Avval kamida bitta joyni belgilang'}>{busy ? '…' : `🔗 Havola yaratish (${sel.size} ta joy)`}</button>
           )}
           {open.length > 0 && !link && (
             <div className="list" style={{ marginTop: 8 }}>

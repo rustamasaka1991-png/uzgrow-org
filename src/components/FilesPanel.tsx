@@ -19,11 +19,18 @@ type Props = {
   requiredPassport?: boolean
   /** 5 ta rasm majburiy: hamma slot ko'rsatiladi va yulduzcha qo'yiladi */
   requiredGallery?: boolean
+  /** Faqat ma'lum pasport tomonlari majburiy (chala havola) */
+  requiredSides?: { old?: boolean; orqa?: boolean }
 }
 
 /** Pasport (old/orqa) va 5 tagacha qo'shimcha rasm */
-export function FilesPanel({ files, canEdit, onUpload, onDelete, loading, requiredPassport, requiredGallery }: Props) {
+export function FilesPanel({ files, canEdit, onUpload, onDelete, loading, requiredPassport, requiredGallery, requiredSides }: Props) {
   const [big, setBig] = useState<Fayl | null>(null)
+  /** Shu slot majburiymi */
+  const isReq = (turi: FaylTuri) =>
+    turi === 'rasm' ? !!requiredGallery
+    : turi === 'pasport_old' ? !!(requiredPassport || requiredSides?.old)
+    : !!(requiredPassport || requiredSides?.orqa)
   const [busy, setBusy] = useState<string | null>(null)
   const pass = (t: FaylTuri) => files.find((f) => f.turi === t)
   const gallery = files.filter((f) => f.turi === 'rasm').sort((a, b) => a.idx - b.idx)
@@ -38,7 +45,7 @@ export function FilesPanel({ files, canEdit, onUpload, onDelete, loading, requir
   const Slot = ({ turi, idx, label }: { turi: FaylTuri; idx: number; label: string }) => {
     const f = turi === 'rasm' ? gallery.find((g) => g.idx === idx) : pass(turi)
     return (
-      <div className={`fslot${f ? ' has' : ''}${!f && ((requiredPassport && turi !== 'rasm') || (requiredGallery && turi === 'rasm')) ? ' req' : ''}`}>
+      <div className={`fslot${f ? ' has' : ''}${!f && isReq(turi) ? ' req' : ''}`}>
         {f ? (
           <>
             <img src={f.data} alt={label} onClick={() => setBig(f)} />
@@ -50,7 +57,7 @@ export function FilesPanel({ files, canEdit, onUpload, onDelete, loading, requir
             <input type="file" accept="image/*" capture={turi !== 'rasm' ? 'environment' : undefined} hidden onChange={(e) => { void pick(turi, idx, e.target.files?.[0]); e.target.value = '' }} />
           </label>
         ) : <div className="fadd empty">—</div>}
-        <div className="flabel">{label}{(requiredPassport && turi !== 'rasm') || (requiredGallery && turi === 'rasm') ? ' *' : ''}</div>
+        <div className="flabel">{label}{isReq(turi) ? ' *' : ''}</div>
       </div>
     )
   }
