@@ -68,6 +68,7 @@ To'liq tekshiruv (2026-10-26): ochiq va admin rejimda 15 ta sahifa ochildi — k
 | ✅ | HR/xodim pasport yuklay olmas edi | Profil va shaxsiy havolada "📎" bo'limi: yuklash, almashtirish, o'chirish, kattalashtirib ko'rish |
 | ✅ | Chala anketa uchun yechim yo'q edi | "Chala joylar" bloki + bir martalik havola: faqat bo'sh savollar ko'rinadi, to'ldirilgach yopiladi |
 | ✅ | Xodim sahifasida orqaga tugmasi yo'q edi | "← Orqaga" (bir qadam) |
+| ✅ | Qo'shimcha rasmlar ixtiyoriy edi; chala ro'yxat bir qatorda, fayllarsiz edi | Pasportdan tashqari 5 ta rasm majburiy (57 ta majburiy element); "Chala joylar" bo'lim-bo'lim ro'yxat (savollar, pasport tomoni, rasm soni); bir martalik havolada pasport va rasmlar ham yuklanadi |
 
 Qolgan bandlar (men qila olmaydiganlar yoki alohida qaror talab qiladiganlar) pastda.
 

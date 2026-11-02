@@ -125,3 +125,4 @@ Jadvallar: `bolimlar`, `xodimlar` (`token` — shaxsiy havola), `sozlamalar`, `a
 - **Tezlik**: anketalar ro'yxati faqat ism/telefon/lavozim/rasm ustunlarini yuklaydi; to'liq anketa ochilganda yuklanadi.
 - **Xavfsiz boshlanish**: baza bo'sh ko'rinsa ham boshlang'ich xodimlar avtomatik yuklanmaydi (faqat ☰ Menyu → "Boshlang'ich holatga qaytarish").
 - Xodim sahifasida "← Orqaga" tugmasi.
+- **5 ta rasm majburiy** (pasportdan tashqari): anketada 5 ta slot, hammasi yuklanmaguncha yuborilmaydi. "Chala joylar" bloki bo'lim-bo'lim ro'yxat ko'rsatadi (qaysi savollar, pasport tomoni, nechta rasm yetishmaydi); bir martalik havolada pasport va rasmlar ham yuklanadi (saqlanishi darhol, yakuniy "Yuborish" bilan havola yopiladi).

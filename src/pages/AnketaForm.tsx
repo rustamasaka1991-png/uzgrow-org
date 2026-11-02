@@ -4,7 +4,7 @@ import { FilesPanel } from '../components/FilesPanel'
 import { ANKETA, HOLATLAR, emptyEmployee } from '../data/seed'
 import { api, type Fayl, type FaylTuri } from '../data/supabase'
 import type { Employee, QAKey, Taklif, TimeKey, Timeline } from '../data/types'
-import { fileToDataUrl, today } from '../lib/util'
+import { RASM_SONI, fileToDataUrl, missingFileKeys, today } from '../lib/util'
 
 /** Ochiq anketa: bitta doimiy havola, HR ga yuboriladi. Hamma savol, rasm va pasport majburiy. */
 const QA_KEYS: QAKey[] = ['shaxsiy', 'oila', 'shaxsiyat', 'hobbi', 'maqsad', 'rivojlanish']
@@ -53,14 +53,16 @@ export function AnketaForm() {
   }
   const addFile = (turi: FaylTuri, idx: number, data: string) => {
     setFiles((fs) => [...fs.filter((x) => !(x.turi === turi && x.idx === idx)), { id: Date.now() + idx, turi, idx, data }])
-    unmiss(turi)
+    unmiss(turi === 'rasm' ? 'rasmlar' : turi)
   }
   const delFile = (f: Fayl) => setFiles((fs) => fs.filter((x) => x.id !== f.id))
 
-  const total = QA_KEYS.reduce((a, k) => a + (ANKETA[k].turi === 'qa' ? ANKETA[k].savollar.length : 0), 0) + 2 + 3
+  // 49 savol + 2 (ta'lim/mehnat) + asosiy rasm + pasport 2 + qo'shimcha 5 rasm
+  const total = QA_KEYS.reduce((a, k) => a + (ANKETA[k].turi === 'qa' ? ANKETA[k].savollar.length : 0), 0) + 2 + 1 + 2 + RASM_SONI
   const filledCount = QA_KEYS.reduce((a, k) => a + Object.values(e[k]).filter((v) => v.trim()).length, 0)
     + TIME_KEYS.reduce((a, k) => a + (e[k].some((r) => r.yil.trim() && r.joy.trim()) ? 1 : 0), 0)
     + (e.foto ? 1 : 0) + (files.some((f) => f.turi === 'pasport_old') ? 1 : 0) + (files.some((f) => f.turi === 'pasport_orqa') ? 1 : 0)
+    + Math.min(RASM_SONI, files.filter((f) => f.turi === 'rasm').length)
 
   function findMissing(): string[] {
     const m: string[] = []
@@ -70,12 +72,11 @@ export function AnketaForm() {
       if (s.turi === 'qa') for (const [q] of s.savollar) if (!e[k][q]?.trim()) m.push(`${k}.${q}`)
     }
     for (const k of TIME_KEYS) if (!e[k].some((r) => r.yil.trim() && r.joy.trim())) m.push(`${k}.row`)
-    if (!files.some((f) => f.turi === 'pasport_old')) m.push('pasport_old')
-    if (!files.some((f) => f.turi === 'pasport_orqa')) m.push('pasport_orqa')
+    m.push(...missingFileKeys(files))
     return m
   }
-  const secOf = (k: string) => k === 'foto' ? 'foto' : k.startsWith('pasport') ? 'fayllar' : k.split('.')[0]
-  const secName = (s: string) => s === 'foto' ? 'Rasm' : s === 'fayllar' ? 'Pasport' : (ANKETA[s as QAKey | TimeKey]?.nom ?? s)
+  const secOf = (k: string) => k === 'foto' ? 'foto' : (k.startsWith('pasport') || k === 'rasmlar') ? 'fayllar' : k.split('.')[0]
+  const secName = (s: string) => s === 'foto' ? 'Asosiy rasm' : s === 'fayllar' ? 'Pasport va rasmlar' : (ANKETA[s as QAKey | TimeKey]?.nom ?? s)
 
   async function submit(ev: FormEvent) {
     ev.preventDefault()
@@ -185,9 +186,9 @@ export function AnketaForm() {
       })}
 
       <section className={`sec${sectionMissing('fayllar') ? ' has-missing' : ''}`} id="s-fayllar">
-        <summary><span className="num">10</span><span className="tt">Pasport va qo'shimcha rasmlar</span>{sectionMissing('fayllar') > 0 && <span className="cnt err">pasport kerak</span>}</summary>
-        <div className="note">Pasportning old va orqa tomonini suratga oling (majburiy). Qo'shimcha 5 tagacha rasm — ixtiyoriy.</div>
-        <FilesPanel files={files} canEdit onUpload={addFile} onDelete={delFile} requiredPassport />
+        <summary><span className="num">10</span><span className="tt">Pasport va rasmlar</span>{sectionMissing('fayllar') > 0 && <span className="cnt err">{sectionMissing('fayllar')} ta yetishmaydi</span>}</summary>
+        <div className="note">Pasportning old va orqa tomonini suratga oling. Qo'shimcha {RASM_SONI} ta rasm yuklang (masalan: o'zingiz, ish joyi, diplom). Hammasi majburiy.</div>
+        <FilesPanel files={files} canEdit onUpload={addFile} onDelete={delFile} requiredPassport requiredGallery />
       </section>
 
       <div className="submit">

@@ -55,4 +55,7 @@ export const api = {
   myFileDelete: (token: string, id: number) => rpc<Ok>('xodim_fayl_ochirish', { p_token: token, p_id: id }),
   toldirishInfo: (token: string) => rpc<ToldirishInfo>('toldirish_info', { p_token: token }),
   toldirishYuborish: (token: string, data: Record<string, unknown>) => rpc<Ok>('toldirish_yuborish', { p_token: token, p_data: data }),
+  toldirishFiles: (token: string) => rpc<Fayl[]>('toldirish_fayllar_olish', { p_token: token }),
+  toldirishFileSave: (token: string, turi: FaylTuri, idx: number, data: string) => rpc<{ ok: true; id: number } | { ok: false; xato: string }>('toldirish_fayl_saqlash', { p_token: token, p_turi: turi, p_idx: idx, p_data: data }),
+  toldirishFileDelete: (token: string, id: number) => rpc<Ok>('toldirish_fayl_ochirish', { p_token: token, p_id: id }),
 }

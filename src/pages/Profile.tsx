@@ -132,7 +132,7 @@ export function Profile() {
       </div>
 
       {canEdit && e.bolim === 'sinov' && !e.arxiv && <SinovPanel key={e.id} e={e} />}
-      {canEdit && !e.arxiv && <ToldirishBlock key={`t-${e.id}`} e={e} target={{ xodim_id: e.id }} />}
+      {canEdit && !e.arxiv && <ToldirishBlock key={`t-${e.id}`} e={e} target={{ xodim_id: e.id }} files={files.list} />}
       {canEdit && (
         <details className="sec" open>
           <summary><span className="num">📎</span><span className="tt">Pasport va qo'shimcha rasmlar</span><span className="cnt">{files.list.length} ta fayl</span></summary>

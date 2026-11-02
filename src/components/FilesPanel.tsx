@@ -17,10 +17,12 @@ type Props = {
   loading?: boolean
   /** Pasport majburiy ekanini ko'rsatish (anketa formasida) */
   requiredPassport?: boolean
+  /** 5 ta rasm majburiy: hamma slot ko'rsatiladi va yulduzcha qo'yiladi */
+  requiredGallery?: boolean
 }
 
 /** Pasport (old/orqa) va 5 tagacha qo'shimcha rasm */
-export function FilesPanel({ files, canEdit, onUpload, onDelete, loading, requiredPassport }: Props) {
+export function FilesPanel({ files, canEdit, onUpload, onDelete, loading, requiredPassport, requiredGallery }: Props) {
   const [big, setBig] = useState<Fayl | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
   const pass = (t: FaylTuri) => files.find((f) => f.turi === t)
@@ -36,7 +38,7 @@ export function FilesPanel({ files, canEdit, onUpload, onDelete, loading, requir
   const Slot = ({ turi, idx, label }: { turi: FaylTuri; idx: number; label: string }) => {
     const f = turi === 'rasm' ? gallery.find((g) => g.idx === idx) : pass(turi)
     return (
-      <div className={`fslot${f ? ' has' : ''}${requiredPassport && turi !== 'rasm' && !f ? ' req' : ''}`}>
+      <div className={`fslot${f ? ' has' : ''}${!f && ((requiredPassport && turi !== 'rasm') || (requiredGallery && turi === 'rasm')) ? ' req' : ''}`}>
         {f ? (
           <>
             <img src={f.data} alt={label} onClick={() => setBig(f)} />
@@ -48,7 +50,7 @@ export function FilesPanel({ files, canEdit, onUpload, onDelete, loading, requir
             <input type="file" accept="image/*" capture={turi !== 'rasm' ? 'environment' : undefined} hidden onChange={(e) => { void pick(turi, idx, e.target.files?.[0]); e.target.value = '' }} />
           </label>
         ) : <div className="fadd empty">—</div>}
-        <div className="flabel">{label}{requiredPassport && turi !== 'rasm' ? ' *' : ''}</div>
+        <div className="flabel">{label}{(requiredPassport && turi !== 'rasm') || (requiredGallery && turi === 'rasm') ? ' *' : ''}</div>
       </div>
     )
   }
@@ -65,11 +67,17 @@ export function FilesPanel({ files, canEdit, onUpload, onDelete, loading, requir
             </div>
           </div>
           <div className="fgroup">
-            <div className="ftitle">Qo'shimcha rasmlar ({gallery.length}/{MAX_RASM})</div>
+            <div className="ftitle">Qo'shimcha rasmlar ({gallery.length}/{MAX_RASM}){requiredGallery ? ' — 5 tasi ham majburiy *' : ''}</div>
             <div className="frow">
-              {gallery.map((g) => <Slot key={g.id} turi="rasm" idx={g.idx} label={`Rasm ${g.idx + 1}`} />)}
-              {canEdit && onUpload && gallery.length < MAX_RASM && <Slot turi="rasm" idx={freeIdx()} label="Qo'shish" />}
-              {!gallery.length && !canEdit && <div className="note">Rasm yo'q</div>}
+              {requiredGallery
+                ? Array.from({ length: MAX_RASM }, (_, i) => <Slot key={i} turi="rasm" idx={i} label={`Rasm ${i + 1}`} />)
+                : (
+                  <>
+                    {gallery.map((g) => <Slot key={g.id} turi="rasm" idx={g.idx} label={`Rasm ${g.idx + 1}`} />)}
+                    {canEdit && onUpload && gallery.length < MAX_RASM && <Slot turi="rasm" idx={freeIdx()} label="Qo'shish" />}
+                    {!gallery.length && !canEdit && <div className="note">Rasm yo'q</div>}
+                  </>
+                )}
             </div>
           </div>
         </>

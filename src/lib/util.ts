@@ -25,10 +25,22 @@ export function completeness(e: Employee) {
   return Math.round((f / t) * 100)
 }
 
-/** Anketaning to'ldirilmagan (xodim to'ldirishi kerak bo'lgan) maydonlari: "shaxsiy.telefon", "talim", "foto"… */
-export function missingKeys(e: Employee): string[] {
+export const RASM_SONI = 5
+/** Fayl kalitlari: pasport ikki tomoni va 5 ta rasm */
+export type FileLike = { turi: string; idx: number }
+export function missingFileKeys(files: FileLike[]): string[] {
+  const m: string[] = []
+  if (!files.some((f) => f.turi === 'pasport_old')) m.push('pasport_old')
+  if (!files.some((f) => f.turi === 'pasport_orqa')) m.push('pasport_orqa')
+  const n = files.filter((f) => f.turi === 'rasm').length
+  if (n < RASM_SONI) m.push('rasmlar')
+  return m
+}
+/** Anketaning to'ldirilmagan (xodim to'ldirishi kerak bo'lgan) maydonlari: "shaxsiy.telefon", "talim", "foto", "pasport_old", "rasmlar"… */
+export function missingKeys(e: Employee, files?: FileLike[]): string[] {
   const m: string[] = []
   if (!filled(e.foto)) m.push('foto')
+  if (files) m.push(...missingFileKeys(files))
   for (const k of SECTION_ORDER) {
     const s = ANKETA[k]
     if (s.turi === 'qa' && k !== 'rivojlanish' && k !== 'baholash') {
@@ -43,7 +55,10 @@ export function missingKeys(e: Employee): string[] {
 }
 /** Maydon kaliti → odam o'qiydigan nom */
 export function keyLabel(key: string): string {
-  if (key === 'foto') return 'Rasm'
+  if (key === 'foto') return 'Asosiy rasm (avatar)'
+  if (key === 'pasport_old') return 'Pasport — old tomoni'
+  if (key === 'pasport_orqa') return 'Pasport — orqa tomoni'
+  if (key === 'rasmlar') return `Qo'shimcha rasmlar (jami ${RASM_SONI} ta bo'lishi kerak)`
   const [sec, q] = key.split('.')
   const s = ANKETA[sec as keyof typeof ANKETA]
   if (!s) return key

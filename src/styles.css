@@ -366,3 +366,7 @@ textarea{resize:vertical}
 .toldirish.ok{border-left-color:var(--ok)}
 .aform .sec summary .num{background:var(--c)}
 @media (max-width:520px){.fslot,.fslot img,.fslot .fadd{width:calc(50vw - 32px)}}
+.miss-groups{display:grid;gap:10px;margin:6px 0 10px}
+.miss-group{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--bg)}
+.miss-sec{font-weight:700;font-size:13px;margin-bottom:4px}
+.miss-group ol{margin:0;padding-left:20px;font-size:13.5px;display:grid;gap:2px}

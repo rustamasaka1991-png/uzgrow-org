@@ -7,11 +7,11 @@ import { useAuth } from '../data/auth'
 import { useAriza, useArizalar } from '../data/arizalar'
 import { copyArizaFilesToXodim, createToldirishLink, useFayllar, useToldirishLinks } from '../data/fayllar'
 import { copyText } from '../data/invites'
-import { SINOV_BOLIM, emptyEmployee } from '../data/seed'
+import { ANKETA, SINOV_BOLIM, emptyEmployee } from '../data/seed'
 import { useOrg } from '../data/store'
 import { linkTo, supabase, type ArizaHolat, type ArizaLite } from '../data/supabase'
 import type { Employee } from '../data/types'
-import { fileToDataUrl, keyLabel, missingKeys, norm, slug, uniqueId } from '../lib/util'
+import { RASM_SONI, fileToDataUrl, keyLabel, missingKeys, norm, slug, uniqueId } from '../lib/util'
 
 const HOLAT: Record<ArizaHolat, string> = { yangi: 'Yangi', qabul: 'Qabul qilindi', rad: 'Rad etildi' }
 const fmt = (s: string) => new Date(s).toLocaleString('uz', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
@@ -69,8 +69,8 @@ export function Arizalar() {
 }
 
 /** HR: chala anketa uchun bir martalik havola bloki (anketa yoki xodim uchun) */
-export function ToldirishBlock({ e, target }: { e: Employee; target: { xodim_id?: string; ariza_id?: string } }) {
-  const miss = missingKeys(e)
+export function ToldirishBlock({ e, target, files = [] }: { e: Employee; target: { xodim_id?: string; ariza_id?: string }; files?: { turi: string; idx: number }[] }) {
+  const miss = missingKeys(e, files)
   const { list, reload, remove } = useToldirishLinks(target)
   const [link, setLink] = useState('')
   const [copied, setCopied] = useState(false)
@@ -82,13 +82,30 @@ export function ToldirishBlock({ e, target }: { e: Employee; target: { xodim_id?
     try { const t = await createToldirishLink(target, miss); setLink(linkTo(`/t/${t}`)); await reload() } catch (ex) { alert(String((ex as Error).message ?? ex)) } finally { setBusy(false) }
   }
   async function copy(l: string) { setCopied(await copyText(l)); setTimeout(() => setCopied(false), 2000) }
+  // Bo'limlar bo'yicha guruhlash: nima boshidan to'ldirilishi kerak
+  const groups: { nom: string; items: string[] }[] = []
+  const rasmSoni = files.filter((f) => f.turi === 'rasm').length
+  for (const k of miss) {
+    const sec = k === 'foto' || k === 'pasport_old' || k === 'pasport_orqa' || k === 'rasmlar' ? 'Rasmlar va pasport' : (ANKETA[k.split('.')[0] as keyof typeof ANKETA]?.nom ?? k)
+    const label = k === 'rasmlar' ? `Qo'shimcha rasmlar: ${rasmSoni}/${RASM_SONI} (yana ${RASM_SONI - rasmSoni} ta kerak)` : k.includes('.') ? keyLabel(k).split(': ').slice(1).join(': ') : (k === 'talim' || k === 'mehnat') ? 'Kamida bitta qator' : keyLabel(k)
+    let g = groups.find((x) => x.nom === sec); if (!g) { g = { nom: sec, items: [] }; groups.push(g) }
+    g.items.push(label)
+  }
   return (
     <div className={`panel toldirish${miss.length ? '' : ' ok'}`}>
       <h3>Chala joylar{miss.length ? ` — ${miss.length} ta to'ldirilmagan` : ' — hammasi to’ldirilgan ✓'}</h3>
       {miss.length > 0 && (
         <>
-          <div className="note" style={{ marginBottom: 8 }}>{miss.slice(0, 8).map(keyLabel).join(' · ')}{miss.length > 8 ? ` · … yana ${miss.length - 8} ta` : ''}</div>
-          <p className="note">Xodimga bir martalik havola yuboring: unda faqat shu to'ldirilmagan joylar ko'rinadi, to'ldirgach havola yopiladi va javoblar anketaga tushadi.</p>
+          <p className="note">Xodim quyidagilarni boshidan to'ldirishi kerak:</p>
+          <div className="miss-groups">
+            {groups.map((g) => (
+              <div className="miss-group" key={g.nom}>
+                <div className="miss-sec">{g.nom} <span className="note">({g.items.length})</span></div>
+                <ol>{g.items.map((it, i) => <li key={i}>{it}</li>)}</ol>
+              </div>
+            ))}
+          </div>
+          <p className="note">Xodimga bir martalik havola yuboring: unda faqat shu to'ldirilmagan joylar (savollar, pasport, rasmlar) ko'rinadi, to'ldirgach havola yopiladi va javoblar anketaga tushadi.</p>
           {link ? (
             <div className="link-box"><code>{link}</code><button type="button" className="btn primary" onClick={() => copy(link)}>{copied ? 'Nusxalandi ✓' : 'Nusxalash'}</button></div>
           ) : (
@@ -230,7 +247,7 @@ export function ArizaView() {
         </form>
       )}
 
-      {a.holat !== 'qabul' && <ToldirishBlock e={e} target={{ ariza_id: a.id }} />}
+      {a.holat !== 'qabul' && <ToldirishBlock e={e} target={{ ariza_id: a.id }} files={files.list} />}
 
       <details className="sec" open>
         <summary><span className="num">📎</span><span className="tt">Pasport va qo'shimcha rasmlar</span><span className="cnt">{files.list.length} ta fayl</span></summary>
