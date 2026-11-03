@@ -228,17 +228,14 @@ export function OrgProvider({ children }: { children: ReactNode }) {
         setSync('loading')
         await flush()
         if (queue.current.size) throw new Error(syncErrorRef.current ?? 'Navbat yuborilmadi')
-        const [b, x, s] = await Promise.all([
-          sb.from('bolimlar').select('id,data,tartib'),
-          sb.from('xodimlar').select('id,data,tartib,token'),
-          sb.from('sozlamalar').select('key,value'),
-        ])
-        const err = b.error ?? x.error ?? s.error
-        if (err) throw new Error(err.message)
+        // Bitta so'rov, katta rasmlarsiz (96px kichik nusxa yetarli; katta rasm bazada qoladi — trigger himoya qiladi)
+        const { data: r, error } = await sb.rpc('tuzilma_admin')
+        if (error) throw new Error(error.message)
         if (!alive) return
+        const t = r as { bolimlar: Row[]; xodimlar: Row[]; sozlamalar: SettingRow[] }
         // Baza bo'sh bo'lsa ham hech narsa avtomatik yuklanmaydi (boshlang'ich ma'lumot faqat
         // menyudagi "Boshlang'ich holatga qaytarish" orqali) — aks holda xodimlar "o'zidan o'zi" paydo bo'lardi
-        applyRemote(b.data as Row[], x.data as Row[], s.data as SettingRow[])
+        applyRemote(t.bolimlar, t.xodimlar, t.sozlamalar)
         loaded.current = true
         if (!queue.current.size) { setSync('online'); setSyncError(null) }
       } catch (e) {
