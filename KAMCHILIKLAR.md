@@ -68,6 +68,7 @@ To'liq tekshiruv (2026-10-26): ochiq va admin rejimda 15 ta sahifa ochildi — k
 | ✅ | HR/xodim pasport yuklay olmas edi | Profil va shaxsiy havolada "📎" bo'limi: yuklash, almashtirish, o'chirish, kattalashtirib ko'rish |
 | ✅ | Chala anketa uchun yechim yo'q edi | "Chala joylar" bloki + bir martalik havola: faqat bo'sh savollar ko'rinadi, to'ldirilgach yopiladi |
 | ✅ | Xodim sahifasida orqaga tugmasi yo'q edi | "← Orqaga" (bir qadam) |
+| ✅ | Rasmlar ko'paygach sayt (ochiq va HR rejimi) sekinlashardi | Ro'yxatlar faqat kichik rasm (foto_kichik) yuklaydi; katta rasm faqat profil ochilganda. HR yuklashi `tuzilma_admin` RPC orqali rasmsiz (≈150 KB). Bazada trigger: yangilashda rasm yo'q bo'lsa eskisi saqlanadi — hech narsa o'chmaydi |
 | ✅ | Qo'shimcha rasmlar ixtiyoriy edi; chala ro'yxat bir qatorda, fayllarsiz edi | Pasportdan tashqari 5 ta rasm majburiy (57 ta majburiy element); "Chala joylar" bo'lim-bo'lim ro'yxat (savollar, pasport tomoni, rasm soni); bir martalik havolada pasport va rasmlar ham yuklanadi |
 
 Qolgan bandlar (men qila olmaydiganlar yoki alohida qaror talab qiladiganlar) pastda.
@@ -101,7 +102,7 @@ Qolgan bandlar (men qila olmaydiganlar yoki alohida qaror talab qiladiganlar) pa
 ### 2.2 Ochiq ma'lumotlar
 - 🔴 **2026-11-02 qaror (ta'sischi):** loginsiz kirgan har kim xodim anketasini to'liq ko'radi — telefon, manzil, oila, baholash, qo'shimcha rasmlar (pasport rasmlari emas). Bu internetdagi istalgan odam uchun ham ochiq. Agar bu kerak bo'lmay qolsa, bir qatorlik o'zgarish bilan yana faqat tuzilma ko'rsatiladigan qilish mumkin.
 - 🟡 **Tuzilma hammaga ochiq.** Havolani bilgan har kim (internetdagi istalgan odam) barcha xodimlarning ism, lavozim, rasm, bo'lim va rahbarini ko'radi. Qidiruv tizimlariga `noindex` qo'yildi, lekin bu havola tarqalsa yordam bermaydi. Agar bu kerak bo'lmasa: umumiy "ko'rish paroli" qo'shish mumkin (≈2 soat) yoki ochiq rejimni butunlay yopish.
-- 🟡 **Rasmlar ochiq rejimda hammaga yuboriladi.** 100 ta xodim bo'lsa sahifa 1–3 MB bo'ladi (har rasm 512px, ≈10–30 KB). Telefonda sekin ochiladi. Yechim: rasmlarni Supabase Storage'ga ko'chirish (≈1 kun).
+- 🟢 **Rasmlar ochiq rejimda kichik nusxada (≈2 KB) yuboriladi;** katta rasm faqat profil ochilganda. 100 xodimda ham ro'yxat ≈300 KB. Rasmlar hali bazada (base64); juda ko'payib ketsa Supabase Storage'ga ko'chirish mumkin (≈1 kun).
 - 🟢 Ochiq anketa sahifasida (`/#/anketa`) kompaniya nomi ko'rinadi — bu normal, lekin forma hammaga ochiq bo'lgani uchun begonalar ham "anketa" yuborishi mumkin (pastga qarang).
 
 ### 2.3 Shaxsiy havolalar
