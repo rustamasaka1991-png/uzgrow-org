@@ -51,8 +51,8 @@ export function AnketaForm() {
     if (!f) return
     try { const r = await fotoVaKichik(f); setE((x) => ({ ...x, ...r })); unmiss('foto') } catch (ex) { setErr(String(ex)) }
   }
-  const addFile = (turi: FaylTuri, idx: number, data: string) => {
-    setFiles((fs) => [...fs.filter((x) => !(x.turi === turi && x.idx === idx)), { id: Date.now() + idx, turi, idx, data }])
+  const addFile = (turi: FaylTuri, idx: number, data: string, kichik: string) => {
+    setFiles((fs) => [...fs.filter((x) => !(x.turi === turi && x.idx === idx)), { id: Date.now() + idx, turi, idx, data, kichik }])
     unmiss(turi === 'rasm' ? 'rasmlar' : turi)
   }
   const delFile = (f: Fayl) => setFiles((fs) => fs.filter((x) => x.id !== f.id))
@@ -96,7 +96,7 @@ export function AnketaForm() {
       const r = await api.submitAnketa({
         ism: e.shaxsiy.fish.trim(), foto: e.foto, foto_kichik: e.foto_kichik, shaxsiy: e.shaxsiy, talim: clean('talim'), mehnat: clean('mehnat'),
         oila: e.oila, shaxsiyat: e.shaxsiyat, hobbi: e.hobbi, maqsad: e.maqsad, rivojlanish: e.rivojlanish, takliflar, website: hp,
-      }, files.map((f) => ({ turi: f.turi, idx: f.idx, data: f.data })))
+      }, files.map((f) => ({ turi: f.turi, idx: f.idx, data: f.data ?? '', kichik: f.kichik })))
       if (!r.ok) { setErr(r.xato); return }
       clearDraft()
       setDone(true)

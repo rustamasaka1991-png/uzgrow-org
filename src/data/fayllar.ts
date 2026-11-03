@@ -12,19 +12,27 @@ export function useFayllar(jadval: Jadval, id: string | undefined) {
 
   const reload = useCallback(async () => {
     if (!supabase || !id) { setList([]); setLoading(false); return }
-    const { data, error } = await supabase.from(jadval).select('id,turi,idx,data').eq(COL[jadval], id).order('turi').order('idx')
+    // `_k` ko'rinishi: faqat kichik nusxa; to'liq rasm bosilganda `open` orqali
+    const { data, error } = await supabase.from(`${jadval}_k`).select('id,turi,idx,kichik').eq(COL[jadval], id).order('turi').order('idx')
     if (error) setError(error.message); else { setError(null); setList((data ?? []) as Fayl[]) }
     setLoading(false)
   }, [jadval, id])
 
   useEffect(() => { void reload() }, [reload])
 
-  const upload = useCallback(async (turi: FaylTuri, idx: number, data: string) => {
+  const upload = useCallback(async (turi: FaylTuri, idx: number, data: string, kichik?: string) => {
     if (!supabase || !id) throw new Error('Supabase sozlanmagan')
-    const { error } = await supabase.from(jadval).upsert({ [COL[jadval]]: id, turi, idx, data }, { onConflict: `${COL[jadval]},turi,idx` })
+    const { error } = await supabase.from(jadval).upsert({ [COL[jadval]]: id, turi, idx, data, kichik: kichik ?? null }, { onConflict: `${COL[jadval]},turi,idx` })
     if (error) throw new Error(error.message)
     await reload()
   }, [jadval, id, reload])
+
+  const open = useCallback(async (f: Fayl) => {
+    if (!supabase) throw new Error('Supabase sozlanmagan')
+    const { data, error } = await supabase.from(jadval).select('data').eq('id', f.id).single()
+    if (error) throw new Error(error.message)
+    return (data as { data: string }).data
+  }, [jadval])
 
   const remove = useCallback(async (fid: number) => {
     if (!supabase) throw new Error('Supabase sozlanmagan')
@@ -33,16 +41,16 @@ export function useFayllar(jadval: Jadval, id: string | undefined) {
     await reload()
   }, [jadval, reload])
 
-  return { list, loading, error, upload, remove, reload }
+  return { list, loading, error, upload, remove, reload, open }
 }
 
 /** Anketa qabul qilinganda fayllar xodimga ko'chadi */
 export async function copyArizaFilesToXodim(arizaId: string, xodimId: string) {
   if (!supabase) return
-  const { data, error } = await supabase.from('ariza_fayllar').select('turi,idx,data').eq('ariza_id', arizaId)
+  const { data, error } = await supabase.from('ariza_fayllar').select('turi,idx,data,kichik').eq('ariza_id', arizaId)
   if (error) throw new Error(error.message)
   if (!data?.length) return
-  const rows = data.map((f) => ({ xodim_id: xodimId, turi: f.turi, idx: f.idx, data: f.data }))
+  const rows = data.map((f) => ({ xodim_id: xodimId, turi: f.turi, idx: f.idx, data: f.data, kichik: f.kichik }))
   const { error: e2 } = await supabase.from('xodim_fayllar').upsert(rows, { onConflict: 'xodim_id,turi,idx' })
   if (e2) throw new Error(e2.message)
 }

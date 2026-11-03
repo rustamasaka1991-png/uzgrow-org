@@ -16,7 +16,8 @@ export type ArizaLite = { id: string; holat: ArizaHolat; xodim_id: string | null
 export type Ariza = { id: string; data: Partial<Employee>; holat: ArizaHolat; xodim_id: string | null; izoh: string; created_at: string; updated_at: string }
 /** Qo'shimcha fayl: galereya rasmi yoki pasport */
 export type FaylTuri = 'rasm' | 'pasport_old' | 'pasport_orqa'
-export type Fayl = { id: number; turi: FaylTuri; idx: number; data: string }
+/** `kichik` — 320px nusxa (ro'yxatda), `data` — to'liq rasm (bosilganda yuklanadi; lokal qoralamada darhol bor) */
+export type Fayl = { id: number; turi: FaylTuri; idx: number; data?: string; kichik?: string }
 export const FAYL_NOMI: Record<FaylTuri, string> = { rasm: 'Rasm', pasport_old: 'Pasport (old tomoni)', pasport_orqa: 'Pasport (orqa tomoni)' }
 
 /** Tasodifiy 32 belgili hex token (shaxsiy havolalar uchun). */
@@ -46,18 +47,21 @@ async function rpc<T>(fn: string, args: Record<string, unknown>): Promise<T> {
 }
 export const api = {
   /** Ochiq anketa formasi: HR ga yuborish (fayllar bilan) */
-  submitAnketa: (data: Partial<Employee> & { website?: string }, fayllar: { turi: FaylTuri; idx: number; data: string }[]) =>
+  submitAnketa: (data: Partial<Employee> & { website?: string }, fayllar: { turi: FaylTuri; idx: number; data: string; kichik?: string }[]) =>
     rpc<{ ok: true; id: string } | { ok: false; xato: string }>('anketa_yuborish', { p_data: data, p_fayllar: fayllar }),
   /** Ochiq rejim: xodimning qo'shimcha rasmlari (pasportsiz) */
   publicPhotos: (id: string) => rpc<Fayl[]>('xodim_rasmlar_ochiq', { p_id: id }),
+  publicPhoto: (fileId: number) => rpc<string | null>('xodim_rasm_ochiq', { p_id: fileId }),
   me: (token: string) => rpc<MyInfo>('xodim_olish', { p_token: token }),
   save: (token: string, data: Partial<Employee>) => rpc<{ ok: true; xodim: Employee } | { ok: false; xato: string }>('xodim_saqlash', { p_token: token, p_data: data }),
   myFiles: (token: string) => rpc<Fayl[]>('xodim_fayllar_olish', { p_token: token }),
-  myFileSave: (token: string, turi: FaylTuri, idx: number, data: string) => rpc<{ ok: true; id: number } | { ok: false; xato: string }>('xodim_fayl_saqlash', { p_token: token, p_turi: turi, p_idx: idx, p_data: data }),
+  myFile: (token: string, fileId: number) => rpc<string | null>('xodim_fayl_olish', { p_token: token, p_id: fileId }),
+  myFileSave: (token: string, turi: FaylTuri, idx: number, data: string, kichik?: string) => rpc<{ ok: true; id: number } | { ok: false; xato: string }>('xodim_fayl_saqlash', { p_token: token, p_turi: turi, p_idx: idx, p_data: data, p_kichik: kichik ?? null }),
   myFileDelete: (token: string, id: number) => rpc<Ok>('xodim_fayl_ochirish', { p_token: token, p_id: id }),
   toldirishInfo: (token: string) => rpc<ToldirishInfo>('toldirish_info', { p_token: token }),
   toldirishYuborish: (token: string, data: Record<string, unknown>) => rpc<Ok>('toldirish_yuborish', { p_token: token, p_data: data }),
   toldirishFiles: (token: string) => rpc<Fayl[]>('toldirish_fayllar_olish', { p_token: token }),
-  toldirishFileSave: (token: string, turi: FaylTuri, idx: number, data: string) => rpc<{ ok: true; id: number } | { ok: false; xato: string }>('toldirish_fayl_saqlash', { p_token: token, p_turi: turi, p_idx: idx, p_data: data }),
+  toldirishFile: (token: string, fileId: number) => rpc<string | null>('toldirish_fayl_olish', { p_token: token, p_id: fileId }),
+  toldirishFileSave: (token: string, turi: FaylTuri, idx: number, data: string, kichik?: string) => rpc<{ ok: true; id: number } | { ok: false; xato: string }>('toldirish_fayl_saqlash', { p_token: token, p_turi: turi, p_idx: idx, p_data: data, p_kichik: kichik ?? null }),
   toldirishFileDelete: (token: string, id: number) => rpc<Ok>('toldirish_fayl_ochirish', { p_token: token, p_id: id }),
 }

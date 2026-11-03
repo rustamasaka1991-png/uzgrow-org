@@ -139,7 +139,7 @@ export function Profile() {
       {canEdit && (
         <details className="sec" open>
           <summary><span className="num">📎</span><span className="tt">Pasport va qo'shimcha rasmlar</span><span className="cnt">{files.list.length} ta fayl</span></summary>
-          <div className="qa"><FilesPanel files={files.list} loading={files.loading} canEdit onUpload={files.upload} onDelete={(f) => files.remove(f.id)} /></div>
+          <div className="qa"><FilesPanel files={files.list} loading={files.loading} canEdit onUpload={files.upload} onDelete={(f) => files.remove(f.id)} onOpen={files.open} /></div>
         </details>
       )}
       {canEdit ? (
@@ -149,7 +149,7 @@ export function Profile() {
           {pubFiles.length > 0 && (
             <details className="sec" open>
               <summary><span className="num">📎</span><span className="tt">Rasmlar</span><span className="cnt">{pubFiles.length} ta</span></summary>
-              <div className="qa"><FilesPanel files={pubFiles} canEdit={false} hidePassport /></div>
+              <div className="qa"><FilesPanel files={pubFiles} canEdit={false} hidePassport onOpen={(f) => api.publicPhoto(f.id)} /></div>
             </details>
           )}
           <Anketa e={e} mode="view" />

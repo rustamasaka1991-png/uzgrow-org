@@ -279,7 +279,7 @@ export function ArizaView() {
 
       <details className="sec" open>
         <summary><span className="num">📎</span><span className="tt">Pasport va qo'shimcha rasmlar</span><span className="cnt">{files.list.length} ta fayl</span></summary>
-        <div className="qa"><FilesPanel files={files.list} loading={files.loading} canEdit onUpload={files.upload} onDelete={(f) => files.remove(f.id)} /></div>
+        <div className="qa"><FilesPanel files={files.list} loading={files.loading} canEdit onUpload={files.upload} onDelete={(f) => files.remove(f.id)} onOpen={files.open} /></div>
       </details>
 
       <p className="note no-print">Anketadagi har bir bo'limni "Tahrirlash" orqali to'g'rilashingiz mumkin — o'zgarishlar anketaga yoziladi{a.holat === 'qabul' ? ' (tuzilmadagi xodim anketasini uning sahifasida o’zgartiring)' : ', qabul qilinganda xodimga ko’chadi'}.</p>

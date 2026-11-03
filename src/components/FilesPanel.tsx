@@ -1,19 +1,23 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { FAYL_NOMI, type Fayl, type FaylTuri } from '../data/supabase'
-import { fileToDataUrl } from '../lib/util'
+import { fileToDataUrl, kichikNusxa } from '../lib/util'
 
 /** Rasm o'lchamlari: pasport o'qiladigan bo'lsin, galereya o'rtacha */
 export const RASM_MAX = 640, RASM_Q = 0.8, PASPORT_MAX = 1100, PASPORT_Q = 0.85, MAX_RASM = 5
 
+/** To'liq rasm + ro'yxat uchun kichik nusxa */
 export async function compress(file: File, turi: FaylTuri) {
-  return turi === 'rasm' ? fileToDataUrl(file, RASM_MAX, RASM_Q) : fileToDataUrl(file, PASPORT_MAX, PASPORT_Q)
+  const data = turi === 'rasm' ? await fileToDataUrl(file, RASM_MAX, RASM_Q) : await fileToDataUrl(file, PASPORT_MAX, PASPORT_Q)
+  return { data, kichik: await kichikNusxa(data) }
 }
 
 type Props = {
   files: Fayl[]
   canEdit: boolean
-  onUpload?: (turi: FaylTuri, idx: number, data: string) => Promise<void> | void
+  onUpload?: (turi: FaylTuri, idx: number, data: string, kichik: string) => Promise<void> | void
   onDelete?: (f: Fayl) => Promise<void> | void
+  /** To'liq rasmni yuklash (faylda `data` bo'lmasa) */
+  onOpen?: (f: Fayl) => Promise<string | null>
   loading?: boolean
   /** Pasport majburiy ekanini ko'rsatish (anketa formasida) */
   requiredPassport?: boolean
@@ -26,8 +30,9 @@ type Props = {
 }
 
 /** Pasport (old/orqa) va 5 tagacha qo'shimcha rasm */
-export function FilesPanel({ files, canEdit, onUpload, onDelete, loading, requiredPassport, requiredGallery, requiredSides, hidePassport }: Props) {
-  const [big, setBig] = useState<Fayl | null>(null)
+export function FilesPanel({ files, canEdit, onUpload, onDelete, onOpen, loading, requiredPassport, requiredGallery, requiredSides, hidePassport }: Props) {
+  const [big, setBig] = useState<string | null>(null)
+  const full = useRef<Record<number, string>>({})
   /** Shu slot majburiymi */
   const isReq = (turi: FaylTuri) =>
     turi === 'rasm' ? !!requiredGallery
@@ -38,10 +43,20 @@ export function FilesPanel({ files, canEdit, onUpload, onDelete, loading, requir
   const gallery = files.filter((f) => f.turi === 'rasm').sort((a, b) => a.idx - b.idx)
   const freeIdx = () => { for (let i = 0; i < MAX_RASM; i++) if (!gallery.some((g) => g.idx === i)) return i; return -1 }
 
+  /** Kattalashtirish: to'liq rasm faylda bo'lmasa serverdan bir marta olinadi */
+  async function open(f: Fayl) {
+    setBusy(`open${f.id}`)
+    try {
+      const d = f.data ?? full.current[f.id] ?? (onOpen ? await onOpen(f) : null)
+      if (!d) return
+      full.current[f.id] = d; setBig(d)
+    } catch (e) { alert(String((e as Error).message ?? e)) } finally { setBusy(null) }
+  }
+
   async function pick(turi: FaylTuri, idx: number, f: File | undefined) {
     if (!f || !onUpload) return
     setBusy(`${turi}${idx}`)
-    try { await onUpload(turi, idx, await compress(f, turi)) } catch (e) { alert(String((e as Error).message ?? e)) } finally { setBusy(null) }
+    try { const r = await compress(f, turi); await onUpload(turi, idx, r.data, r.kichik) } catch (e) { alert(String((e as Error).message ?? e)) } finally { setBusy(null) }
   }
 
   const Slot = ({ turi, idx, label }: { turi: FaylTuri; idx: number; label: string }) => {
@@ -50,7 +65,7 @@ export function FilesPanel({ files, canEdit, onUpload, onDelete, loading, requir
       <div className={`fslot${f ? ' has' : ''}${!f && isReq(turi) ? ' req' : ''}`}>
         {f ? (
           <>
-            <img src={f.data} alt={label} onClick={() => setBig(f)} />
+            <img src={f.kichik ?? f.data} alt={label} style={busy === `open${f.id}` ? { opacity: 0.5 } : undefined} onClick={() => void open(f)} />
             {canEdit && onDelete && <button type="button" className="icon-btn fdel" title="O'chirish" onClick={() => { if (confirm(`${label} o'chirilsinmi?`)) void onDelete(f) }}>✕</button>}
           </>
         ) : canEdit && onUpload ? (
@@ -96,7 +111,7 @@ export function FilesPanel({ files, canEdit, onUpload, onDelete, loading, requir
       )}
       {big && (
         <div className="backdrop" onMouseDown={() => setBig(null)}>
-          <img className="bigimg" src={big.data} alt="" />
+          <img className="bigimg" src={big} alt="" />
         </div>
       )}
     </div>

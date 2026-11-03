@@ -61,8 +61,8 @@ export function Toldirish() {
   const setRow = (k: string, i: number, p: Partial<Timeline>) => setVals((v) => ({ ...v, [k]: (v[k] as Timeline[]).map((r, j) => (j === i ? { ...r, ...p } : r)) }))
   const rows = (k: string) => (vals[k] as Timeline[]) ?? []
 
-  async function upload(turi: FaylTuri, idx: number, data: string) {
-    const r = await api.toldirishFileSave(token, turi, idx, data)
+  async function upload(turi: FaylTuri, idx: number, data: string, kichik: string) {
+    const r = await api.toldirishFileSave(token, turi, idx, data, kichik)
     if (!r.ok) throw new Error(r.xato)
     await loadFiles()
   }
@@ -153,7 +153,7 @@ export function Toldirish() {
         <section className="sec">
           <summary><span className="tt">Pasport va rasmlar</span></summary>
           <div className="note">{fileKeys.map(keyLabel).join(' · ')}. Rasm bosilganda darhol saqlanadi.</div>
-          <FilesPanel files={files} canEdit onUpload={upload} onDelete={del} requiredSides={{ old: fileKeys.includes('pasport_old'), orqa: fileKeys.includes('pasport_orqa') }} requiredGallery={needGallery} />
+          <FilesPanel files={files} canEdit onUpload={upload} onDelete={del} onOpen={(f) => api.toldirishFile(token, f.id)} requiredSides={{ old: fileKeys.includes('pasport_old'), orqa: fileKeys.includes('pasport_orqa') }} requiredGallery={needGallery} />
         </section>
       )}
       <div className="submit">

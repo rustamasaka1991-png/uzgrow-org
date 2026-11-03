@@ -152,6 +152,21 @@ export function makeThumb(dataUrl: string, size = 96): Promise<string> {
     img.src = dataUrl
   })
 }
+/** Fayl (pasport/galereya) uchun 320px kichik nusxa: ro'yxatda shu ko'rinadi, to'liq rasm bosilganda yuklanadi. */
+export function kichikNusxa(dataUrl: string, max = 320): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => {
+      const k = Math.min(1, max / Math.max(img.width, img.height))
+      const c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k)
+      const ctx = c.getContext('2d'); if (!ctx) { reject(new Error('canvas')); return }
+      ctx.drawImage(img, 0, 0, c.width, c.height)
+      resolve(c.toDataURL('image/jpeg', 0.75))
+    }
+    img.onerror = () => reject(new Error('Rasm o’qilmadi'))
+    img.src = dataUrl
+  })
+}
 /** Avatar fayli → { foto (512px), foto_kichik (96px) } */
 export async function fotoVaKichik(file: File): Promise<{ foto: string; foto_kichik: string }> {
   const foto = await fileToDataUrl(file)

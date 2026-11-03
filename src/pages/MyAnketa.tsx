@@ -50,8 +50,8 @@ export function MyAnketa() {
     if (!f) return
     try { const r = await fotoVaKichik(f); save((x) => ({ ...x, ...r })) } catch (ex) { alert(String(ex)) }
   }
-  async function upload(turi: FaylTuri, idx: number, data: string) {
-    const r = await api.myFileSave(token, turi, idx, data)
+  async function upload(turi: FaylTuri, idx: number, data: string, kichik: string) {
+    const r = await api.myFileSave(token, turi, idx, data, kichik)
     if (!r.ok) throw new Error(r.xato)
     await loadFiles()
   }
@@ -103,7 +103,7 @@ export function MyAnketa() {
 
       <details className="sec" open>
         <summary><span className="num">📎</span><span className="tt">Pasport va qo'shimcha rasmlar</span><span className="cnt">{files.length} ta fayl</span></summary>
-        <div className="qa"><FilesPanel files={files} canEdit onUpload={upload} onDelete={del} /></div>
+        <div className="qa"><FilesPanel files={files} canEdit onUpload={upload} onDelete={del} onOpen={(f) => api.myFile(token, f.id)} /></div>
       </details>
 
       <Anketa e={e} mode="self" save={save} />
