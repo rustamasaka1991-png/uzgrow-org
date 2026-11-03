@@ -69,6 +69,7 @@ To'liq tekshiruv (2026-10-26): ochiq va admin rejimda 15 ta sahifa ochildi — k
 | ✅ | Chala anketa uchun yechim yo'q edi | "Chala joylar" bloki + bir martalik havola: faqat bo'sh savollar ko'rinadi, to'ldirilgach yopiladi |
 | ✅ | Xodim sahifasida orqaga tugmasi yo'q edi | "← Orqaga" (bir qadam) |
 | ✅ | Rasmlar ko'paygach sayt (ochiq va HR rejimi) sekinlashardi | Ro'yxatlar faqat kichik rasm (foto_kichik) yuklaydi; katta rasm faqat profil ochilganda. HR yuklashi `tuzilma_admin` RPC orqali rasmsiz (≈150 KB). Bazada trigger: yangilashda rasm yo'q bo'lsa eskisi saqlanadi — hech narsa o'chmaydi |
+| ✅ | Profil/anketa ochilganda pasport va 5 rasm to'liq hajmda (≈1–2 MB) yuklanardi | Fayllar 320px kichik nusxada (≈20 KB) ko'rinadi, to'liq rasm bosilganda yuklanadi; eski fayllar uchun nusxalar yaratildi, asl fayllar o'zgarmadi |
 | ✅ | Qo'shimcha rasmlar ixtiyoriy edi; chala ro'yxat bir qatorda, fayllarsiz edi | Pasportdan tashqari 5 ta rasm majburiy (57 ta majburiy element); "Chala joylar" bo'lim-bo'lim ro'yxat (savollar, pasport tomoni, rasm soni); bir martalik havolada pasport va rasmlar ham yuklanadi |
 
 Qolgan bandlar (men qila olmaydiganlar yoki alohida qaror talab qiladiganlar) pastda.
