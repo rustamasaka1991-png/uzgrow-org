@@ -56,7 +56,8 @@ export function FilesPanel({ files, canEdit, onUpload, onDelete, loading, requir
         ) : canEdit && onUpload ? (
           <label className="fadd">
             <span>{busy === `${turi}${idx}` ? '…' : '+'}</span>
-            <input type="file" accept="image/*" capture={turi !== 'rasm' ? 'environment' : undefined} hidden onChange={(e) => { void pick(turi, idx, e.target.files?.[0]); e.target.value = '' }} />
+            {/* capture atributi yo'q: telefonda galereyadan ham, kameradan ham tanlash mumkin bo'lsin */}
+            <input type="file" accept="image/*" hidden onChange={(e) => { void pick(turi, idx, e.target.files?.[0]); e.target.value = '' }} />
           </label>
         ) : <div className="fadd empty">—</div>}
         <div className="flabel">{label}{isReq(turi) ? ' *' : ''}</div>
