@@ -28,6 +28,8 @@ export default defineConfig({
       workbox: {
         // Ilova qobig'i keshlanadi; Supabase so'rovlari har doim tarmoqdan
         globPatterns: ['**/*.{js,css,html,png,svg,woff2}'],
+        // HEIC kutubxonasi 1.3 MB — faqat HEIC rasm tanlanganda yuklansin, oldindan keshlanmasin
+        globIgnores: ['**/heic2any-*.js'],
         navigateFallback: '/index.html',
         runtimeCaching: [
           { urlPattern: /^https:\/\/fonts\.googleapis\.com\//, handler: 'StaleWhileRevalidate', options: { cacheName: 'google-fonts-css' } },
