@@ -107,9 +107,19 @@ export function today() {
 }
 
 /** Rasmni 512px gacha kichraytirib, JPEG data-URL qaytaradi (localStorage'ga sig'ishi uchun). */
-export function fileToDataUrl(file: File, max = 512, quality = 0.85): Promise<string> {
+/** iPhone HEIC/HEIF rasmini brauzer o'qiy olmaydi — kerak bo'lgandagina kutubxona yuklab JPEG'ga o'giramiz. */
+async function toDecodable(file: File): Promise<Blob> {
+  const heic = /image\/hei[cf]/i.test(file.type) || /\.hei[cf]$/i.test(file.name)
+  if (!heic) return file
+  const { default: heic2any } = await import('heic2any')
+  const out = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.9 })
+  return Array.isArray(out) ? out[0] : out
+}
+
+export async function fileToDataUrl(file: File, max = 512, quality = 0.85): Promise<string> {
+  const blob = await toDecodable(file)
   return new Promise((resolve, reject) => {
-    const url = URL.createObjectURL(file)
+    const url = URL.createObjectURL(blob)
     const img = new Image()
     img.onload = () => {
       const k = Math.min(1, max / Math.max(img.width, img.height))
