@@ -5,6 +5,7 @@ import type { Employee } from '../data/types'
 import { fotoVaKichik, slug, uniqueId } from '../lib/util'
 import { Avatar } from './Avatar'
 import { GroupSelect } from './GroupSelect'
+import { ManagerOptions } from './ManagerOptions'
 import { Modal } from './Modal'
 
 type Props = { initial?: Employee; defaultDept?: string; onClose: () => void; onSaved?: (id: string) => void }
@@ -27,8 +28,8 @@ export function EmployeeForm({ initial, defaultDept, onClose, onSaved }: Props) 
   const [rahbarBelgisi, setRahbarBelgisi] = useState(!!initial?.rahbar_belgisi)
   const [err, setErr] = useState('')
 
-  // Rahbar sifatida faqat rahbarlar (CEO, bo'lim boshliqlari, qo'l ostida xodimi borlar);
-  // o'zi va o'z qo'l ostidagilar chiqmaydi. Hozirgi rahbari ro'yxatda bo'lmasa ham saqlanadi.
+  // Rahbar sifatida hamma faol xodim; o'zi va o'z qo'l ostidagilar chiqmaydi (aylanma bo'lmasin).
+  // Hozirgi rahbari ro'yxatda bo'lmasa (arxivda) ham saqlanadi.
   const candidates = useMemo(() => {
     const under = new Set<string>()
     if (initial) {
@@ -99,7 +100,7 @@ export function EmployeeForm({ initial, defaultDept, onClose, onSaved }: Props) 
           <label className="field"><span>Bevosita rahbari</span>
             <select value={rahbar} onChange={(e) => setRahbar(e.target.value)}>
               <option value="">— Yo'q (eng yuqori) —</option>
-              {candidates.map((x) => <option key={x.id} value={x.id}>{x.ism} — {x.lavozim}</option>)}
+              <ManagerOptions list={candidates} />
             </select>
           </label>
         </div>

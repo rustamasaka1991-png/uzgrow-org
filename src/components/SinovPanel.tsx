@@ -3,6 +3,7 @@ import { SINOV_BOLIM } from '../data/seed'
 import { useOrg } from '../data/store'
 import type { Employee } from '../data/types'
 import { daysSince } from '../lib/util'
+import { ManagerOptions } from './ManagerOptions'
 
 /** Sinov muddatidagi xodim: necha kun o'tdi, doimiy bo'limga o'tkazish yoki arxiv */
 export function SinovPanel({ e }: { e: Employee }) {
@@ -45,7 +46,7 @@ export function SinovPanel({ e }: { e: Employee }) {
       <label className="field"><span>Bevosita rahbari</span>
         <select value={rahbar} onChange={(ev) => setRahbar(ev.target.value)}>
           <option value="">— Yo'q —</option>
-          {managers.filter((m) => m.id !== e.id).map((x) => <option key={x.id} value={x.id}>{x.ism} — {x.lavozim}</option>)}
+          <ManagerOptions list={managers.filter((m) => m.id !== e.id)} />
         </select>
       </label>
       <div className="actions">

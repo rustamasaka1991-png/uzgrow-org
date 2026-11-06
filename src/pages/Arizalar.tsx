@@ -3,6 +3,7 @@ import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { Anketa } from '../components/Anketa'
 import { Avatar } from '../components/Avatar'
 import { FilesPanel } from '../components/FilesPanel'
+import { ManagerOptions } from '../components/ManagerOptions'
 import { useAuth } from '../data/auth'
 import { useAriza, useArizalar } from '../data/arizalar'
 import { copyArizaFilesToXodim, createToldirishLink, useFayllar, useToldirishLinks } from '../data/fayllar'
@@ -265,7 +266,7 @@ export function ArizaView() {
           <label className="field"><span>Bevosita rahbari</span>
             <select value={rahbar} onChange={(ev) => setRahbar(ev.target.value)}>
               <option value="">— Yo'q —</option>
-              {managers.map((x) => <option key={x.id} value={x.id}>{x.ism} — {x.lavozim}</option>)}
+              <ManagerOptions list={managers} />
             </select>
           </label>
           {err && <div className="err">{err}</div>}

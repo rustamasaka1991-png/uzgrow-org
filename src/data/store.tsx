@@ -304,9 +304,10 @@ export function OrgProvider({ children }: { children: ReactNode }) {
     const ofDept = (id: string) => data.xodimlar.filter((e) => e.bolim === id)
     const headOf = (id: string) => ofDept(id).find((e) => !byId[e.rahbar] || byId[e.rahbar].arxiv || byId[e.rahbar].bolim !== id)
     const colorOf = (deptId: string) => deptOf(deptId)?.rang ?? 'var(--brand)'
-    const hasKids = new Set(data.xodimlar.map((e) => e.rahbar).filter(Boolean))
-    const heads = new Set(data.bolimlar.map((b) => headOf(b.id)?.id).filter(Boolean))
-    const managers = data.xodimlar.filter((e) => e.id === data.ceoId || e.rahbar_belgisi || heads.has(e.id) || hasKids.has(e.id))
+    // Rahbar sifatida tanlash mumkin bo'lganlar: hamma faol xodim (CEO birinchi, keyin bo'limlar tartibida).
+    // Bazada "kim bo'lim boshlig'i" belgisi yo'q (hamma CEO ga bo'ysunadi), shuning uchun ro'yxatni qisqartirish boshliqlarni yashirib qo'yardi.
+    const deptIdx = (id: string) => { const i = data.bolimlar.findIndex((b) => b.id === id); return i < 0 ? data.bolimlar.length : i }
+    const managers = [...data.xodimlar].sort((a, b) => (a.id === data.ceoId ? -1 : b.id === data.ceoId ? 1 : deptIdx(a.bolim) - deptIdx(b.bolim)))
     const reparent = (d: OrgData, victimId: string) => {
       const victim = d.xodimlar.find((x) => x.id === victimId)
       if (!victim) return d.xodimlar
