@@ -124,6 +124,9 @@ Jadvallar: `bolimlar`, `xodimlar` (`token` — shaxsiy havola), `sozlamalar`, `a
 - **Chala joylar havolasi**: xodim yoki anketa sahifasida "Chala joylar" bloki to'ldirilmagan savollarni ko'rsatadi; HR **bir martalik havola** yaratadi (`/#/t/<token>`) — unda faqat shu savollar ko'rinadi, to'ldirilgach havola yopiladi, javoblar anketaga tushadi.
 - **Tezlik**: anketalar ro'yxati faqat ism/telefon/lavozim/rasm ustunlarini yuklaydi; to'liq anketa ochilganda yuklanadi.
 - **Tezlik (rasmlar)**: ro'yxatlar `foto_kichik` (kichik nusxa) ishlatadi; ochiq rejim `tuzilma_ochiq`, HR rejimi `tuzilma_admin` RPC orqali katta rasmsiz yuklanadi. `foto_saqla` triggeri yangilashda bazadagi rasmni saqlab qoladi.
+- **Bir vaqtda tahrirlash**: HR/rahbar saqlashi `xodim_birlashtirib_saqla(p_id, p_data, p_asos, p_tartib)` orqali — 3 tomonlama birlashtirish (asos = tahrirlash boshlangandagi nusxa), faqat o'zgargan maydonlar yoziladi.
+- **Ochiq ro'yxat**: `tuzilma_royxat()` (qisqa maydonlar) + `tuzilma_royxat_belgi()`; profil `xodim_ochiq(p_id)` orqali. Eski `tuzilma_ochiq` eski ilova nusxalari uchun qoldirilgan.
+- **To'liq zaxira**: Boshqaruv → Zaxiralar → "Hammasini yuklab olish" (`src/lib/toliqZaxira.ts`), oxirgi vaqt `sozlamalar.toliq_zaxira` da.
 - **Tezlik (fayllar)**: `xodim_fayllar`/`ariza_fayllar` da `kichik` ustuni (320px); ro'yxatlar `*_k` ko'rinishi va RPC'lar orqali faqat kichik nusxani oladi, to'liq rasm bosilganda (`xodim_rasm_ochiq`, `xodim_fayl_olish`, `toldirish_fayl_olish`, admin uchun to'g'ridan-to'g'ri select).
 - **Xavfsiz boshlanish**: baza bo'sh ko'rinsa ham boshlang'ich xodimlar avtomatik yuklanmaydi (faqat ☰ Menyu → "Boshlang'ich holatga qaytarish").
 - Xodim sahifasida "← Orqaga" tugmasi.

@@ -51,6 +51,8 @@ export const api = {
     rpc<{ ok: true; id: string } | { ok: false; xato: string }>('anketa_yuborish', { p_data: data, p_fayllar: fayllar }),
   /** Ochiq rejim: xodimning qo'shimcha rasmlari (pasportsiz) */
   publicPhotos: (id: string) => rpc<Fayl[]>('xodim_rasmlar_ochiq', { p_id: id }),
+  /** Ochiq rejim: bitta xodimning to'liq anketasi (ro'yxatda faqat qisqa ma'lumot bor) */
+  publicEmployee: (id: string) => rpc<Partial<Employee> | null>('xodim_ochiq', { p_id: id }),
   publicPhoto: (fileId: number) => rpc<string | null>('xodim_rasm_ochiq', { p_id: fileId }),
   me: (token: string) => rpc<MyInfo>('xodim_olish', { p_token: token }),
   save: (token: string, data: Partial<Employee>) => rpc<{ ok: true; xodim: Employee } | { ok: false; xato: string }>('xodim_saqlash', { p_token: token, p_data: data }),

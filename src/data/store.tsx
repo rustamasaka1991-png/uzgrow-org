@@ -44,7 +44,8 @@ export function clearLocalData() {
 
 /* ---------- Supabase navbati ---------- */
 type Op =
-  | { t: 'up_x'; id: string; data: Employee; tartib: number }
+  /** asos — tahrirlash boshlangandagi nusxa: server faqat o'zgargan maydonlarni yozadi (boshqalarning o'zgarishi yo'qolmaydi) */
+  | { t: 'up_x'; id: string; data: Employee; tartib: number; asos?: Employee }
   | { t: 'del_x'; id: string }
   | { t: 'up_b'; id: string; data: Department; tartib: number }
   | { t: 'del_b'; id: string }
@@ -66,7 +67,7 @@ function diffOps(prev: OrgData, next: OrgData): Op[] {
   next.bolimlar.forEach((b, i) => { const p = pb.get(b.id); if (!p || p.b !== b || p.i !== i) ops.push({ t: 'up_b', id: b.id, data: b, tartib: i }) })
   for (const id of pb.keys()) if (!next.bolimlar.some((b) => b.id === id)) ops.push({ t: 'del_b', id })
   const px = new Map(prev.xodimlar.map((x, i) => [x.id, { x, i }]))
-  next.xodimlar.forEach((x, i) => { const p = px.get(x.id); if (!p || p.x !== x || p.i !== i) ops.push({ t: 'up_x', id: x.id, data: x, tartib: i }) })
+  next.xodimlar.forEach((x, i) => { const p = px.get(x.id); if (!p || p.x !== x || p.i !== i) ops.push({ t: 'up_x', id: x.id, data: x, tartib: i, asos: p?.x }) })
   for (const id of px.keys()) if (!next.xodimlar.some((x) => x.id === id)) ops.push({ t: 'del_x', id })
   if (prev.ceoId !== next.ceoId) ops.push({ t: 'set', key: 'ceoId', value: next.ceoId })
   return ops
@@ -76,7 +77,8 @@ async function runOp(o: Op) {
   if (!supabase) return
   const now = new Date().toISOString()
   const q =
-    o.t === 'up_x' ? supabase.from('xodimlar').upsert({ id: o.id, data: o.data, tartib: o.tartib, updated_at: now })
+    o.t === 'up_x' && o.asos ? supabase.rpc('xodim_birlashtirib_saqla', { p_id: o.id, p_data: o.data, p_asos: o.asos, p_tartib: o.tartib })
+    : o.t === 'up_x' ? supabase.from('xodimlar').upsert({ id: o.id, data: o.data, tartib: o.tartib, updated_at: now })
     : o.t === 'del_x' ? supabase.from('xodimlar').delete().eq('id', o.id)
     : o.t === 'up_b' ? supabase.from('bolimlar').upsert({ id: o.id, data: o.data, tartib: o.tartib, updated_at: now })
     : o.t === 'del_b' ? supabase.from('bolimlar').delete().eq('id', o.id)
@@ -174,14 +176,19 @@ export function OrgProvider({ children }: { children: ReactNode }) {
 
   const enqueue = useCallback((ops: Op[]) => {
     if (!supabase || !ops.length) return
-    for (const o of ops) queue.current.set(opKey(o), o)
+    for (const o of ops) {
+      // Shu xodim uchun hali yuborilmagan o'zgarish bo'lsa, eng birinchi asos saqlanadi
+      const old = queue.current.get(opKey(o))
+      queue.current.set(opKey(o), o.t === 'up_x' && old?.t === 'up_x' ? { ...o, asos: old.asos } : o)
+    }
     saveQueue(queue.current)
     setPending(queue.current.size)
     void flush()
   }, [flush])
 
   const commit = useCallback((fn: (d: OrgData) => OrgData) => {
-    if (supabase && !active) return
+    // HR ma'lumoti hali yuklanmagan bo'lsa saqlamaymiz (bo'sh yoki qisqa nusxa ustiga yozilmasin)
+    if (supabase && (!active || !loaded.current)) return
     const prev = allRef.current
     const next = { ...fn(prev), updatedAt: new Date().toISOString() }
     setAll(next)
@@ -199,7 +206,8 @@ export function OrgProvider({ children }: { children: ReactNode }) {
     let belgi: string | null = null
     let oxirgi = Date.now()
     const load = async () => {
-      const [{ data: d, error }, { data: h }] = await Promise.all([sb.rpc('tuzilma_ochiq'), sb.rpc('tuzilma_ochiq_belgi')])
+      // Yengil ro'yxat (to'liq anketa profil ochilganda xodim_ochiq orqali)
+      const [{ data: d, error }, { data: h }] = await Promise.all([sb.rpc('tuzilma_royxat'), sb.rpc('tuzilma_royxat_belgi')])
       if (!alive) return
       if (error) { setSync(isNetErr(error.message) ? 'offline' : 'error'); setSyncError(error.message); return }
       belgi = typeof h === 'string' ? h : null
@@ -212,7 +220,7 @@ export function OrgProvider({ children }: { children: ReactNode }) {
       if (document.hidden) return
       oxirgi = Date.now()
       if (!belgi) { await load(); return }
-      const { data: h, error } = await sb.rpc('tuzilma_ochiq_belgi')
+      const { data: h, error } = await sb.rpc('tuzilma_royxat_belgi')
       if (!alive || error) return
       if (h !== belgi) await load()
     }
@@ -228,6 +236,8 @@ export function OrgProvider({ children }: { children: ReactNode }) {
     if (!active) { if (supabase) { loaded.current = false } return }
     const sb = supabase!
     let alive = true
+    // Kirishdan keyin ochiq rejimdagi qisqa ro'yxat ko'rinib qolmasin: HR ma'lumoti kelguncha skeleton
+    if (!loaded.current) { setAll(EMPTY()); setSync('loading') }
 
     const applyRemote = (b: Row[], x: Row[], s: SettingRow[]) => {
       const bolimlar = [...b].sort((p, q) => p.tartib - q.tartib).map((r) => ({ ...(r.data as Department), id: r.id }))

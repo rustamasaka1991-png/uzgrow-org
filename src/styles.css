@@ -261,6 +261,11 @@ textarea{resize:vertical}
 @keyframes pulse{50%{opacity:.3}}
 @media (max-width:760px){.sync{order:3}}
 
+.zaxira-toliq{margin-bottom:18px}
+.okmsg{color:var(--ok);font-size:13px;font-weight:600}
+.eslatma{display:flex;gap:12px;align-items:center;flex-wrap:wrap;border:1px solid var(--warn);border-left-width:4px;background:var(--surface);border-radius:12px;padding:12px 16px;margin-bottom:18px}
+.eslatma .grow{flex:1;min-width:200px}
+
 /* Skeleton: ma'lumot kelguncha sahifa shakli */
 .sk{background:var(--line);border-radius:8px;animation:pulse 1.4s ease-in-out infinite}
 .sk-grow{flex:1;min-width:0}

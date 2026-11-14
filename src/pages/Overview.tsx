@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Avatar } from '../components/Avatar'
 import { DeptForm } from '../components/DeptForm'
@@ -6,7 +6,21 @@ import { EmployeeForm } from '../components/EmployeeForm'
 import { DeptIcon } from '../components/Icons'
 import { OverviewSkeleton } from '../components/Skeleton'
 import { useOrg } from '../data/store'
+import { ESLATMA_KUN, oxirgiToliqZaxira } from '../lib/toliqZaxira'
 import { completeness } from '../lib/util'
+
+/** HR/rahbar: to'liq zaxira 7 kundan beri yuklab olinmagan bo'lsa eslatma */
+function ZaxiraEslatma() {
+  const [kun, setKun] = useState<number | null | undefined>(undefined)
+  useEffect(() => { void oxirgiToliqZaxira().then((v) => setKun(v ? Math.floor((Date.now() - Date.parse(v)) / 86400000) : null)) }, [])
+  if (kun === undefined || (kun !== null && kun < ESLATMA_KUN)) return null
+  return (
+    <div className="eslatma">
+      <div className="grow"><b>To'liq zaxira {kun === null ? 'hali yuklab olinmagan' : `${kun} kundan beri yuklab olinmagan`}.</b> Rasmlar va anketalarni bazadan tashqarida ham saqlab qo'ying.</div>
+      <Link className="btn" to="/boshqaruv/zaxira">Zaxiraga o'tish</Link>
+    </div>
+  )
+}
 
 export function Overview() {
   const { data, byId, headOf, ofDept, canEdit, sync } = useOrg()
@@ -32,6 +46,7 @@ export function Overview() {
           </div>
         )}
       </div>
+      {canEdit && <ZaxiraEslatma />}
       {sync === 'loading' && !data.bolimlar.length ? <OverviewSkeleton /> : <>
       <div className="stats">
         <span className="chip"><b>{data.bolimlar.length}</b> bo'lim</span>

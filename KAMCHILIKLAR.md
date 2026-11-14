@@ -69,6 +69,11 @@ To'liq tekshiruv (2026-10-26): ochiq va admin rejimda 15 ta sahifa ochildi — k
 | ✅ | Chala anketa uchun yechim yo'q edi | "Chala joylar" bloki + bir martalik havola: faqat bo'sh savollar ko'rinadi, to'ldirilgach yopiladi |
 | ✅ | Xodim sahifasida orqaga tugmasi yo'q edi | "← Orqaga" (bir qadam) |
 | ✅ | Rasmlar ko'paygach sayt (ochiq va HR rejimi) sekinlashardi | Ro'yxatlar faqat kichik rasm (foto_kichik) yuklaydi; katta rasm faqat profil ochilganda. HR yuklashi `tuzilma_admin` RPC orqali rasmsiz (≈150 KB). Bazada trigger: yangilashda rasm yo'q bo'lsa eskisi saqlanadi — hech narsa o'chmaydi |
+| ✅ | HR va rahbar bitta xodimni bir vaqtda tahrirlasa, oxirgi saqlagan boshqasining o'zgarishini bosib ketardi | Server faqat o'zgartirilgan maydonlarni yozadi (savol darajasigacha): ikkalasining o'zgarishi ham saqlanadi. Bir xil savolni ikkalasi o'zgartirsagina oxirgisi qoladi |
+| ✅ | Zaxiralar faqat bazaning ichida edi (baza yo'qolsa zaxira ham yo'qolardi) | Boshqaruv → Zaxiralar: "Hammasini yuklab olish" — rasmlar, pasportlar, anketalar, tarix bitta faylga. 7 kundan beri olinmagan bo'lsa bosh sahifada HR ga eslatma chiqadi |
+| ✅ | Ochiq sahifa hamma xodimning to'liq anketasini birdaniga yuklardi (xodim ko'paygan sari sekinlashardi) | Ro'yxat faqat ism, lavozim, bo'lim, kichik rasm (≈42 KB o'rniga 83 KB); to'liq anketa profil ochilganda yuklanadi |
+| ✅ | Zaxiradan tiklanganda o'chirilgan xodim katta rasmsiz qaytardi | Katta rasm `foto_arxiv` dan avtomatik qaytadi (faqat kichik nusxa aynan mos kelsa) |
+| ✅ | Ochilishda "0 bo'lim, 0 xodim" ko'rinardi | Skeleton loading |
 | ✅ | Ochiq sahifa ochiq tursa har daqiqada butun tuzilmani (~80 KB) qayta yuklardi — oylik trafik limitini tugatishi mumkin edi | Faqat sahifa ko'rinib turganda, har 2 daqiqada kichik belgi (~0.5 KB) tekshiriladi; tuzilma o'zgargandagina to'liq yuklanadi |
 | ✅ | Bitta Wi-Fi'dan soatiga faqat 5 ta anketa yuborish mumkin edi | Soatiga 30 ta |
 | ✅ | Kunlik zaxiralar katta rasmlar bilan saqlanib, baza tez o'sardi (har biri ~0.6 MB) | Zaxira katta rasmsiz (~0.12 MB), 90 kun saqlanadi. Rasm almashtirilsa yoki xodim o'chirilsa, eski rasm `foto_arxiv` jadvaliga tushadi — hech qachon yo'qolmaydi |

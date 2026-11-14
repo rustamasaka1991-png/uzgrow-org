@@ -10,7 +10,9 @@ import { useFayllar } from '../data/fayllar'
 import { ToldirishBlock } from './Arizalar'
 import { copyText } from '../data/invites'
 import { useOrg } from '../data/store'
+import { emptyEmployee } from '../data/seed'
 import { api, linkTo, supabase, type Fayl } from '../data/supabase'
+import type { Employee } from '../data/types'
 import { completeness, filled, fotoVaKichik } from '../lib/util'
 
 export function Profile() {
@@ -23,14 +25,18 @@ export function Profile() {
   const files = useFayllar('xodim_fayllar', canEdit ? id : undefined)
   // Ochiq rejim: qo'shimcha rasmlar (pasportsiz) alohida RPC orqali
   const [pubFiles, setPubFiles] = useState<Fayl[]>([])
+  // Ochiq rejimda ro'yxatda faqat qisqa ma'lumot bor — to'liq anketa shu yerda yuklanadi
+  const [full, setFull] = useState<{ id: string; e: Employee | null } | null>(null)
   useEffect(() => {
-    if (canEdit || !supabase || !id) { setPubFiles([]); return }
+    if (canEdit || !supabase || !id) { setPubFiles([]); setFull(null); return }
     let alive = true
     api.publicPhotos(id).then((f) => { if (alive) setPubFiles(f) }).catch(() => { if (alive) setPubFiles([]) })
+    api.publicEmployee(id).then((x) => { if (alive) setFull({ id, e: x ? emptyEmployee(x) : null }) }).catch(() => { if (alive) setFull({ id, e: null }) })
     return () => { alive = false }
   }, [canEdit, id])
-  const e = byId[id]
-  if (!e && (sync === 'loading' || sync === 'saving')) return <PageSkeleton />
+  const pubWait = !canEdit && !!supabase && full?.id !== id
+  const e = (!canEdit && full?.id === id && full.e) || byId[id]
+  if (pubWait || (!e && (sync === 'loading' || sync === 'saving'))) return <PageSkeleton />
   if (!e) return <Navigate to="/" replace />
   const d = deptOf(e.bolim)
   const c = e.bolim === 'rahbariyat' ? 'var(--ceo)' : colorOf(e.bolim)

@@ -4,6 +4,7 @@ import { Avatar } from '../components/Avatar'
 import { useAuth } from '../data/auth'
 import { useOrg } from '../data/store'
 import { supabase } from '../data/supabase'
+import { oxirgiToliqZaxira, toliqZaxiraYuklab } from '../lib/toliqZaxira'
 import { download } from '../lib/util'
 
 type Tab = 'tarix' | 'zaxira' | 'arxiv'
@@ -132,6 +133,8 @@ function Zaxiralar() {
   }
   if (!supabase) return <div className="panel empty-box">Faqat Supabase rejimida ishlaydi</div>
   return (
+    <>
+    <ToliqZaxira />
     <div className="panel">
       <div className="titlebar"><h3>Zaxira nusxalar</h3><button type="button" className="btn primary" onClick={create} disabled={busy}>{busy ? '…' : '+ Hozir zaxira olish'}</button></div>
       <p className="note">Har kuni soat 06:00 (Toshkent) da avtomatik olinadi, 90 kun saqlanadi (katta rasmlarsiz — ular bazada alohida saqlanadi). Yuklab olib Google Drive'ga ham qo'yib qo'ying.</p>
@@ -146,6 +149,35 @@ function Zaxiralar() {
           </div>
         ))}
       </div>
+    </div>
+    </>
+  )
+}
+
+/** Bazadan tashqarida saqlash uchun to'liq zaxira (rasmlar, pasportlar, anketalar bilan) */
+function ToliqZaxira() {
+  const [oxirgi, setOxirgi] = useState<string | null>(null)
+  const [step, setStep] = useState('')
+  const [err, setErr] = useState('')
+  const [natija, setNatija] = useState('')
+  useEffect(() => { void oxirgiToliqZaxira().then(setOxirgi) }, [])
+  async function run() {
+    setErr(''); setNatija('')
+    try {
+      const n = await toliqZaxiraYuklab(setStep)
+      setNatija(`Yuklab olindi: ${n.xodimlar} xodim, ${n.arizalar} anketa, ${n.xodim_fayllar + n.ariza_fayllar} fayl`)
+      setOxirgi(new Date().toISOString())
+    } catch (e) { setErr(String((e as Error).message ?? e)) } finally { setStep('') }
+  }
+  return (
+    <div className="panel zaxira-toliq">
+      <div className="titlebar"><h3>To'liq zaxira (bazadan tashqarida)</h3>
+        <button type="button" className="btn primary" onClick={run} disabled={!!step}>{step ? `Yuklanmoqda: ${step}` : '⬇ Hammasini yuklab olish'}</button>
+      </div>
+      <p className="note">Rasmlar, pasportlar, anketalar va tarix bitta faylga yuklanadi. Haftada bir marta yuklab olib, bazadan tashqarida (Google Drive, fleshka) saqlang — baza bilan biror narsa bo'lsa ham ma'lumot qoladi. Faylda shaxsiy ma'lumotlar bor, begonalarga yubormang.</p>
+      <p className="note">Oxirgi marta: <b>{oxirgi ? fmt(oxirgi) : 'hali yuklab olinmagan'}</b></p>
+      {natija && <div className="okmsg">{natija}</div>}
+      {err && <div className="err">{err}</div>}
     </div>
   )
 }

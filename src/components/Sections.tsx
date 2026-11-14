@@ -27,8 +27,14 @@ function EditBar({ editing, onEdit, onSave, onCancel }: { editing: boolean; onEd
 export function QABlock({ e, k, s, save }: { e: Employee; k: QAKey; s: QASection; save?: Save }) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState<Record<string, string>>({})
-  const start = () => { setDraft({ ...e[k] }); setEditing(true) }
-  const doSave = () => { save?.((x) => ({ ...x, [k]: { ...x[k], ...draft } })); setEditing(false) }
+  const [orig, setOrig] = useState<Record<string, string>>({})
+  const start = () => { setDraft({ ...e[k] }); setOrig({ ...e[k] }); setEditing(true) }
+  // Faqat shu odam o'zgartirgan savollar yoziladi — boshqa birov shu orada o'zgartirgan javob eski qiymat bilan bosilib ketmasin
+  const doSave = () => {
+    const changed = Object.fromEntries(Object.entries(draft).filter(([q, v]) => v !== orig[q]))
+    if (Object.keys(changed).length) save?.((x) => ({ ...x, [k]: { ...x[k], ...changed } }))
+    setEditing(false)
+  }
   return (
     <div className="qa">
       {s.savollar.map(([q, t], i) => (
