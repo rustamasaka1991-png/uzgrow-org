@@ -196,16 +196,31 @@ export function OrgProvider({ children }: { children: ReactNode }) {
     setTokens({})
     setAll(EMPTY())
     setSync('loading')
+    let belgi: string | null = null
+    let oxirgi = Date.now()
     const load = async () => {
-      const { data: d, error } = await sb.rpc('tuzilma_ochiq')
+      const [{ data: d, error }, { data: h }] = await Promise.all([sb.rpc('tuzilma_ochiq'), sb.rpc('tuzilma_ochiq_belgi')])
       if (!alive) return
       if (error) { setSync(isNetErr(error.message) ? 'offline' : 'error'); setSyncError(error.message); return }
+      belgi = typeof h === 'string' ? h : null
       setAll(normalize(d))
       setSync('public'); setSyncError(null)
     }
+    // Trafikni tejash: sahifa ko'rinib turgandagina tekshiriladi; avval kichik belgi so'raladi,
+    // tuzilma o'zgargan bo'lsagina to'liq yuklanadi (har daqiqada ~80 KB o'rniga ~0.5 KB)
+    const check = async () => {
+      if (document.hidden) return
+      oxirgi = Date.now()
+      if (!belgi) { await load(); return }
+      const { data: h, error } = await sb.rpc('tuzilma_ochiq_belgi')
+      if (!alive || error) return
+      if (h !== belgi) await load()
+    }
+    const onVis = () => { if (!document.hidden && Date.now() - oxirgi > 60000) void check() }
     void load()
-    const timer = window.setInterval(() => { void load() }, 60000)
-    return () => { alive = false; window.clearInterval(timer) }
+    const timer = window.setInterval(() => { void check() }, 120000)
+    document.addEventListener('visibilitychange', onVis)
+    return () => { alive = false; window.clearInterval(timer); document.removeEventListener('visibilitychange', onVis) }
   }, [publicMode, setAll])
 
   /* ---- Admin: to'liq yuklash + realtime ---- */

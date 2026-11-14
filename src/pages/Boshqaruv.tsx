@@ -134,7 +134,7 @@ function Zaxiralar() {
   return (
     <div className="panel">
       <div className="titlebar"><h3>Zaxira nusxalar</h3><button type="button" className="btn primary" onClick={create} disabled={busy}>{busy ? '…' : '+ Hozir zaxira olish'}</button></div>
-      <p className="note">Har kuni soat 06:00 (Toshkent) da avtomatik olinadi, 30 kun saqlanadi. Yuklab olib Google Drive'ga ham qo'yib qo'ying.</p>
+      <p className="note">Har kuni soat 06:00 (Toshkent) da avtomatik olinadi, 90 kun saqlanadi (katta rasmlarsiz — ular bazada alohida saqlanadi). Yuklab olib Google Drive'ga ham qo'yib qo'ying.</p>
       {err && <div className="err">{err}</div>}
       <div className="list">
         {!rows.length && <div className="empty-box">Hali zaxira yo'q</div>}

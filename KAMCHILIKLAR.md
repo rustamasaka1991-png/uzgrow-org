@@ -13,7 +13,7 @@ Belgilar: 🔴 — muhim, tezroq hal qilish kerak · 🟡 — o'rtacha, rejalash
 | ✅ | Sessiya cheksiz edi | 4 soat harakatsizlikdan keyin avtomatik chiqadi, brauyzer tozalanadi |
 | ✅ | Anketa formasida qoralama yo'q edi | Har javob brauzerda saqlanadi; sahifa yopilsa ham tiklanadi ("Boshidan boshlash" tugmasi bor) |
 | ✅ | Audit log yo'q edi | `tarix` jadvali: kim, qachon, nimani o'zgartirdi (180 kun). ☰ Menyu → "O'zgarishlar tarixi" |
-| ✅ | Zaxira yo'q edi | Har kuni 06:00 (Toshkent) avtomatik zaxira (30 kun saqlanadi) + "Hozir zaxira olish", yuklab olish va tiklash. ☰ Menyu → "Zaxiralar" |
+| ✅ | Zaxira yo'q edi | Har kuni 06:00 (Toshkent) avtomatik zaxira (90 kun saqlanadi, katta rasmlarsiz) + "Hozir zaxira olish", yuklab olish va tiklash. ☰ Menyu → "Zaxiralar" |
 | ✅ | Baholash tarixi yo'q edi | "+ Yangi davr" — eski baholash tarixga ko'chadi; baholovchi va sana yoziladi; jadval ko'rinishida |
 | ✅ | O'chirish qaytarilmas edi | "Ishdan ketdi (arxiv)" — xodim arxivga tushadi (sana, sabab), tuzilmada ko'rinmaydi, "Qaytarish" mumkin. ☰ Menyu → "Arxiv" |
 | ✅ | Sinov muddati sanasi yo'q edi | Sinov bo'limiga tushganda sana yoziladi; bo'lim ro'yxatida "N kun", 90 kundan oshsa qizil; Hisobotda alohida ro'yxat |
@@ -69,6 +69,9 @@ To'liq tekshiruv (2026-10-26): ochiq va admin rejimda 15 ta sahifa ochildi — k
 | ✅ | Chala anketa uchun yechim yo'q edi | "Chala joylar" bloki + bir martalik havola: faqat bo'sh savollar ko'rinadi, to'ldirilgach yopiladi |
 | ✅ | Xodim sahifasida orqaga tugmasi yo'q edi | "← Orqaga" (bir qadam) |
 | ✅ | Rasmlar ko'paygach sayt (ochiq va HR rejimi) sekinlashardi | Ro'yxatlar faqat kichik rasm (foto_kichik) yuklaydi; katta rasm faqat profil ochilganda. HR yuklashi `tuzilma_admin` RPC orqali rasmsiz (≈150 KB). Bazada trigger: yangilashda rasm yo'q bo'lsa eskisi saqlanadi — hech narsa o'chmaydi |
+| ✅ | Ochiq sahifa ochiq tursa har daqiqada butun tuzilmani (~80 KB) qayta yuklardi — oylik trafik limitini tugatishi mumkin edi | Faqat sahifa ko'rinib turganda, har 2 daqiqada kichik belgi (~0.5 KB) tekshiriladi; tuzilma o'zgargandagina to'liq yuklanadi |
+| ✅ | Bitta Wi-Fi'dan soatiga faqat 5 ta anketa yuborish mumkin edi | Soatiga 30 ta |
+| ✅ | Kunlik zaxiralar katta rasmlar bilan saqlanib, baza tez o'sardi (har biri ~0.6 MB) | Zaxira katta rasmsiz (~0.12 MB), 90 kun saqlanadi. Rasm almashtirilsa yoki xodim o'chirilsa, eski rasm `foto_arxiv` jadvaliga tushadi — hech qachon yo'qolmaydi |
 | ✅ | Profil/anketa ochilganda pasport va 5 rasm to'liq hajmda (≈1–2 MB) yuklanardi | Fayllar 320px kichik nusxada (≈20 KB) ko'rinadi, to'liq rasm bosilganda yuklanadi; eski fayllar uchun nusxalar yaratildi, asl fayllar o'zgarmadi |
 | ✅ | Qo'shimcha rasmlar ixtiyoriy edi; chala ro'yxat bir qatorda, fayllarsiz edi | Pasportdan tashqari 5 ta rasm majburiy (57 ta majburiy element); "Chala joylar" bo'lim-bo'lim ro'yxat (savollar, pasport tomoni, rasm soni); bir martalik havolada pasport va rasmlar ham yuklanadi |
 
@@ -111,7 +114,7 @@ Qolgan bandlar (men qila olmaydiganlar yoki alohida qaror talab qiladiganlar) pa
 - 🟢 Havola 128-bitli tasodifiy token — taxmin qilib bo'lmaydi, bu yetarli.
 
 ### 2.4 Ochiq anketa formasi (spam)
-- 🟡 **CAPTCHA yo'q.** Himoya: yashirin "tuzoq" maydon (oddiy botlar to'ldiradi) va bir IP'dan soatiga 5 ta anketa. VPN/proksi bilan IP almashtirib ko'proq yuborish mumkin. Agar spam boshlansa — Cloudflare Turnstile (bepul CAPTCHA) qo'shiladi (≈3 soat).
+- 🟡 **CAPTCHA yo'q.** Himoya: yashirin "tuzoq" maydon (oddiy botlar to'ldiradi) va bir IP'dan soatiga 30 ta anketa. VPN/proksi bilan IP almashtirib ko'proq yuborish mumkin. Agar spam boshlansa — Cloudflare Turnstile (bepul CAPTCHA) qo'shiladi (≈3 soat).
 - 🟡 **Bir odam bir necha marta yuborishi mumkin** (dublikat). HR ro'yxatda ko'rib o'zi aniqlaydi.
 - 🟡 **Anketada IP manzil saqlanadi** (`arizalar.ip`) — spamga qarshi kerak, lekin bu shaxsiy ma'lumot; 30 kundan keyin o'chirib turish kerak (avtomatik tozalash qo'shilmagan).
 

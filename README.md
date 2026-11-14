@@ -92,7 +92,7 @@ Jadvallar: `bolimlar`, `xodimlar` (`token` — shaxsiy havola), `sozlamalar`, `a
 
 - Jadvallarga faqat `adminlar` ro'yxatidagi kirgan foydalanuvchi kira oladi (RLS). Anonim kalit bilan jadvalni o'qib ham, yozib ham bo'lmaydi.
 - Ochiq rejim `tuzilma_ochiq()` orqali faqat id, bo'lim, rahbar, ism, lavozim, guruh va rasmni oladi — maxfiy maydonlar brauzerga yuborilmaydi.
-- Ochiq anketa formasi: faqat anketa maydonlari saqlanadi, 1.5 MB chegara, yashirin "honeypot" maydon (botlar uchun), bir IP dan soatiga 5 ta anketa.
+- Ochiq anketa formasi: faqat anketa maydonlari saqlanadi, 1.5 MB chegara, yashirin "honeypot" maydon (botlar uchun), bir IP dan soatiga 30 ta anketa (ofis Wi-Fi yoki mobil operatorda ko'p odam bitta IP dan chiqadi).
 - Xodim o'z anketasiga 128-bitli tasodifiy token bilan kiradi; HR tokenni istalgan vaqt almashtira oladi. Xodim yuborgan ma'lumotdan server faqat ruxsat etilgan maydonlarni oladi — bo'lim, rahbar, lavozim, baholash, rivojlanish rejasi o'zgarmaydi.
 - Supabase bilan ishlaganda brauzerda ma'lumot keshlanmaydi; chiqishda tozalanadi; realtime faqat admin sessiyasida.
 - Vercel HTTP sarlavhalari (`vercel.json`): Content-Security-Policy, X-Frame-Options DENY, nosniff, HSTS, Referrer-Policy no-referrer.
@@ -102,7 +102,7 @@ Jadvallar: `bolimlar`, `xodimlar` (`token` — shaxsiy havola), `sozlamalar`, `a
 
 - **Hisobot** — bo'limlar kesimida xodim soni, anketa to'ldirilganlik, o'rtacha ball, 60 dan past ballilar; sinov muddatidagilar (90 kundan oshsa qizil); baholanmaganlar; anketalar statistikasi.
 - **O'zgarishlar tarixi** — kim, qachon, qaysi xodim/bo'lim/anketada nimani o'zgartirdi (bazadagi trigger yozadi, 180 kun saqlanadi).
-- **Zaxiralar** — har kuni avtomatik (pg_cron, 30 kun), "Hozir zaxira olish", JSON yuklab olish, tiklash.
+- **Zaxiralar** — har kuni avtomatik (pg_cron, 90 kun, katta rasmlarsiz; almashtirilgan yoki o'chirilgan rasmlar `foto_arxiv` jadvalida abadiy saqlanadi), "Hozir zaxira olish", JSON yuklab olish, tiklash.
 - **Arxiv** — "Ishdan ketdi (arxiv)" bosilgan xodimlar: anketasi saqlanadi, tuzilmada ko'rinmaydi, qaytarish yoki butunlay o'chirish mumkin.
 - **Baholash tarixi** — "+ Yangi davr" bosilganda eski baholash tarixga ko'chadi; baholovchi va sana yoziladi.
 - **Parolni o'zgartirish**, 4 soat harakatsizlikdan keyin avtomatik chiqish.
