@@ -4,11 +4,12 @@ import { Avatar } from '../components/Avatar'
 import { DeptForm } from '../components/DeptForm'
 import { EmployeeForm } from '../components/EmployeeForm'
 import { DeptIcon } from '../components/Icons'
+import { OverviewSkeleton } from '../components/Skeleton'
 import { useOrg } from '../data/store'
 import { completeness } from '../lib/util'
 
 export function Overview() {
-  const { data, byId, headOf, ofDept, canEdit } = useOrg()
+  const { data, byId, headOf, ofDept, canEdit, sync } = useOrg()
   const nav = useNavigate()
   const [addDept, setAddDept] = useState(false)
   const [addEmp, setAddEmp] = useState(false)
@@ -31,6 +32,7 @@ export function Overview() {
           </div>
         )}
       </div>
+      {sync === 'loading' && !data.bolimlar.length ? <OverviewSkeleton /> : <>
       <div className="stats">
         <span className="chip"><b>{data.bolimlar.length}</b> bo'lim</span>
         <span className="chip"><b>{E.length}</b> xodim</span>
@@ -74,6 +76,7 @@ export function Overview() {
           })}
         </div>
       )}
+      </>}
 
       {addDept && <DeptForm onClose={() => setAddDept(false)} onSaved={(id) => nav(`/d/${id}`)} />}
       {addEmp && <EmployeeForm onClose={() => setAddEmp(false)} onSaved={(id) => nav(`/x/${id}`)} />}

@@ -4,6 +4,7 @@ import { Anketa } from '../components/Anketa'
 import { Avatar } from '../components/Avatar'
 import { FilesPanel } from '../components/FilesPanel'
 import { ManagerOptions } from '../components/ManagerOptions'
+import { ListSkeleton, PageSkeleton } from '../components/Skeleton'
 import { useAuth } from '../data/auth'
 import { useAriza, useArizalar } from '../data/arizalar'
 import { copyArizaFilesToXodim, createToldirishLink, useFayllar, useToldirishLinks } from '../data/fayllar'
@@ -52,7 +53,7 @@ export function Arizalar() {
       </div>
       {error && <div className="err">{error}</div>}
       <div className="list">
-        {loading && <div className="empty-box">Yuklanmoqda…</div>}
+        {loading && <ListSkeleton />}
         {!loading && !shown.length && <div className="empty-box">{filter === 'yangi' ? 'Yangi anketa yo’q' : 'Hali anketa kelmagan'}</div>}
         {shown.map((a) => (
           <Link key={a.id} className="ariza" to={`/arizalar/${a.id}`}>
@@ -183,7 +184,7 @@ export function ArizaView() {
   }, [a, lavozim, lavozimTouched])
   if (enabled && authLoading) return <div className="center"><div className="spinner" /> Yuklanmoqda…</div>
   if (enabled && (!session || !isAdmin)) return <Navigate to="/" replace />
-  if (loading) return <div className="center"><div className="spinner" /> Anketa yuklanmoqda…</div>
+  if (loading) return <PageSkeleton />
   if (!a) return <div className="login"><h1>Anketa topilmadi</h1><p className="sub">{error ?? "O'chirilgan bo'lishi mumkin."}</p><Link className="btn" to="/arizalar">← Anketalar</Link></div>
   const e = emptyEmployee({ ...a.data, id: 'ariza' })
   const xodim = a.xodim_id ? byId[a.xodim_id] : undefined

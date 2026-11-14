@@ -12,10 +12,19 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <title>UZ-GROW Tashkiliy Tuzilma</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Golos+Text:wght@400;500;600;700&display=swap" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   </head>
   <body>
-    <div id="root"></div>
+    <!-- Skript yuklanguncha ko'rinadigan sahifa shakli; React ishga tushganda almashtiriladi -->
+    <div id="root"><div class="boot" role="status" aria-label="Yuklanmoqda">
+      <header><div class="wrap"><div class="sk sk-logo"></div></div></header>
+      <main class="wrap">
+        <div class="sk sk-t"></div><div class="sk sk-s"></div>
+        <div class="stats" style="margin-top:20px"><div class="sk sk-chip"></div><div class="sk sk-chip"></div></div>
+        <div class="lead"><div class="sk sk-boss"></div><div class="vline"></div><div class="sk sk-boss"></div><div class="vline"></div></div>
+        <div class="depts" style="--cols:4"><div class="sk sk-dept"></div><div class="sk sk-dept"></div><div class="sk sk-dept"></div><div class="sk sk-dept"></div><div class="sk sk-dept"></div><div class="sk sk-dept"></div><div class="sk sk-dept"></div><div class="sk sk-dept"></div></div>
+      </main>
+    </div></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

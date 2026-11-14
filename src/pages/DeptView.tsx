@@ -4,6 +4,7 @@ import { Avatar } from '../components/Avatar'
 import { DeptForm } from '../components/DeptForm'
 import { EmployeeForm } from '../components/EmployeeForm'
 import { DeptIcon } from '../components/Icons'
+import { PageSkeleton } from '../components/Skeleton'
 import { TreeNode } from '../components/Tree'
 import { useOrg } from '../data/store'
 import { completeness, daysSince } from '../lib/util'
@@ -15,7 +16,7 @@ export function DeptView() {
   const [edit, setEdit] = useState(false)
   const [addEmp, setAddEmp] = useState(false)
   const d = deptOf(id)
-  if (!d && (sync === 'loading' || sync === 'saving')) return <div className="center"><div className="spinner" /> Yuklanmoqda…</div>
+  if (!d && (sync === 'loading' || sync === 'saving')) return <PageSkeleton />
   if (!d) return <Navigate to="/" replace />
   const ps = ofDept(id)
   const h = headOf(id)

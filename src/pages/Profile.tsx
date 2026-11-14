@@ -5,6 +5,7 @@ import { Avatar } from '../components/Avatar'
 import { EmployeeForm } from '../components/EmployeeForm'
 import { FilesPanel } from '../components/FilesPanel'
 import { SinovPanel } from '../components/SinovPanel'
+import { PageSkeleton } from '../components/Skeleton'
 import { useFayllar } from '../data/fayllar'
 import { ToldirishBlock } from './Arizalar'
 import { copyText } from '../data/invites'
@@ -29,7 +30,7 @@ export function Profile() {
     return () => { alive = false }
   }, [canEdit, id])
   const e = byId[id]
-  if (!e && (sync === 'loading' || sync === 'saving')) return <div className="center"><div className="spinner" /> Yuklanmoqda…</div>
+  if (!e && (sync === 'loading' || sync === 'saving')) return <PageSkeleton />
   if (!e) return <Navigate to="/" replace />
   const d = deptOf(e.bolim)
   const c = e.bolim === 'rahbariyat' ? 'var(--ceo)' : colorOf(e.bolim)

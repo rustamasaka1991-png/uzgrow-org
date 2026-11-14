@@ -3,6 +3,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Anketa } from '../components/Anketa'
 import { Avatar } from '../components/Avatar'
 import { FilesPanel } from '../components/FilesPanel'
+import { PageSkeleton } from '../components/Skeleton'
 import { copyText } from '../data/invites'
 import { emptyEmployee } from '../data/seed'
 import { api, linkTo, type Fayl, type FaylTuri, type MyInfo } from '../data/supabase'
@@ -32,7 +33,7 @@ export function MyAnketa() {
     return () => { alive = false }
   }, [token, loadFiles])
 
-  if (!info) return <div className="center"><div className="spinner" /> Anketa yuklanmoqda…</div>
+  if (!info) return <PageSkeleton />
   if (!info.ok || !e) return <div className="login"><h1>Havola ishlamaydi</h1><p className="sub">{info.ok ? '' : info.xato}</p></div>
   const c = info.bolim_rang
   const p = completeness(e)

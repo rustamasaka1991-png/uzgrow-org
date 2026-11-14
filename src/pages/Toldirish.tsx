@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { useParams } from 'react-router-dom'
 import { Avatar } from '../components/Avatar'
 import { FilesPanel } from '../components/FilesPanel'
+import { PageSkeleton } from '../components/Skeleton'
 import { ANKETA } from '../data/seed'
 import { api, type Fayl, type FaylTuri, type ToldirishInfo } from '../data/supabase'
 import type { Timeline } from '../data/types'
@@ -42,7 +43,7 @@ export function Toldirish() {
     return () => { alive = false }
   }, [token, loadFiles])
 
-  if (!info) return <div className="center"><div className="spinner" /> Havola tekshirilmoqda…</div>
+  if (!info) return <PageSkeleton />
   if (!info.ok) return <div className="login"><h1>Havola ishlamaydi</h1><p className="sub">{info.xato}</p></div>
   if (done) return <div className="done"><div className="big-ok">✅</div><h1>Rahmat, {info.ism}!</h1><p className="sub">Ma'lumotlar saqlandi. Bu havola endi yopildi.</p></div>
 

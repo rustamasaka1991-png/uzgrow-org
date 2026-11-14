@@ -261,6 +261,28 @@ textarea{resize:vertical}
 @keyframes pulse{50%{opacity:.3}}
 @media (max-width:760px){.sync{order:3}}
 
+/* Skeleton: ma'lumot kelguncha sahifa shakli */
+.sk{background:var(--line);border-radius:8px;animation:pulse 1.4s ease-in-out infinite}
+.sk-grow{flex:1;min-width:0}
+.sk-chip{height:30px;width:96px;border-radius:999px}
+.sk-boss{height:66px;width:min(320px,100%);border-radius:12px}
+.sk-dept{height:118px;border-radius:12px}
+.sk-crumb{height:14px;width:140px;margin-bottom:14px}
+.sk-head{display:flex;gap:16px;align-items:center;margin-bottom:14px}
+.sk-av{width:72px;height:72px;border-radius:50%;flex:none}
+.sk-av-s{width:40px;height:40px;border-radius:50%;flex:none}
+.sk-t{height:24px;width:min(280px,80%)}
+.sk-s{height:14px;width:min(200px,60%);margin-top:10px}
+.sk-h{height:14px;width:40%}
+.sk-line{height:12px;margin-top:12px}
+.sk-line.sk-first{margin-top:0;width:55%}
+.sk-short{width:35%}
+.sk-block{margin-bottom:14px}
+.sk-row{display:flex;gap:10px;align-items:center;padding:8px}
+.boot main{padding-block:22px 48px}
+.boot .sk-logo{height:34px;width:150px}
+@media (prefers-reduced-motion:reduce){.sk{animation:none}}
+
 /* kirish / xodim sahifalari */
 .login{max-width:520px;margin:24px auto;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:24px}
 .login h1{margin-bottom:6px}
