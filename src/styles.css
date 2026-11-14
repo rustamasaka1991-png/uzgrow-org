@@ -263,7 +263,7 @@ textarea{resize:vertical}
 
 .zaxira-toliq{margin-bottom:18px}
 .okmsg{color:var(--ok);font-size:13px;font-weight:600}
-.eslatma{display:flex;gap:12px;align-items:center;flex-wrap:wrap;border:1px solid var(--warn);border-left-width:4px;background:var(--surface);border-radius:12px;padding:12px 16px;margin-bottom:18px}
+.eslatma{display:flex;gap:12px;align-items:center;flex-wrap:wrap;border:1px solid var(--warn);background:var(--surface);border-radius:12px;padding:12px 16px;margin-bottom:18px}
 .eslatma .grow{flex:1;min-width:200px}
 
 /* Skeleton: ma'lumot kelguncha sahifa shakli */
